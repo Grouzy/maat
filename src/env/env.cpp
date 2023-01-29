@@ -71,7 +71,7 @@ const Library& EnvEmulator::get_library_by_name(const std::string& name) const
 
 const Library& EnvEmulator::get_library_by_num(int num) const
 {
-    if (num < 0 or num >= _libraries.size())
+    if (num < 0 || num >= _libraries.size())
         throw env_exception(
             Fmt() << "EnvEmulator::get_library_by_num(): library '" << num
             << "' doesn't exist in emulated environment" 

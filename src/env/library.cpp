@@ -35,12 +35,12 @@ void _log_function_call(
     ss << "0x" << std::hex << current_pc << ": ";
     ss << func_name << "(";
     // Log parameters
-    for (auto it{args.begin()}; it != args.end() and it != std::prev(args.end()); it++)
+    for (auto it{args.begin()}; it != args.end() && it != std::prev(args.end()); it++)
     {
         const Value& val = *it;
         ss << val << ", ";
     }
-    if (not args.empty())
+    if (! args.empty())
         ss << args.back();
     ss << ")";
     ss << " -> ";
@@ -158,7 +158,7 @@ Function::Type Function::type() const
 
 const FunctionCallback& Function::callback() const
 {
-    if (_type == Function::Type::CALLBACK and _callback.has_value())
+    if (_type == Function::Type::CALLBACK && _callback.has_value())
         return _callback.value();
     else
         throw env_exception("Function::callback() called on function that has no callback!");
@@ -166,7 +166,7 @@ const FunctionCallback& Function::callback() const
 
 const std::shared_ptr<ir::AsmInst>& Function::ir() const
 {
-    if (_type == Function::Type::IR and _ir_block.has_value())
+    if (_type == Function::Type::IR && _ir_block.has_value())
         return _ir_block.value();
     else
         throw env_exception("Function::ir() called on function that has no IR block!");
@@ -279,7 +279,7 @@ const Function& Library::get_function_by_name(const std::string& name) const
 
 const Function& Library::get_function_by_num(int num) const
 {
-    if (num < 0 or num >= _functions.size())
+    if (num < 0 || num >= _functions.size())
         throw env_exception("Library::get_function_by_num(): called with invalid function num!");
     return _functions.at(num);
 }

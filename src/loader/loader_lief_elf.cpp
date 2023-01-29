@@ -33,7 +33,7 @@ addr_t end_of_segment(MemEngine& mem, const std::string& name)
     addr_t res = 0;
     for (auto& segment : mem.segments())
     {
-        if (segment->name == name and res < segment->end)
+        if (segment->name == name && res < segment->end)
             res = segment->end + 1;
     }
     if (res == 0)
@@ -44,6 +44,12 @@ addr_t end_of_segment(MemEngine& mem, const std::string& name)
     return res;
 }
 
+#if !defined(S_ISREG) && defined(S_IFMT) && defined(S_IFREG)
+#define S_ISREG(m) (((m) & S_IFMT) == S_IFREG)
+#endif
+#if !defined(S_ISDIR) && defined(S_IFMT) && defined(S_IFDIR)
+#define S_ISDIR(m) (((m) & S_IFMT) == S_IFDIR)
+#endif
 
 std::string find_library_file(
     const std::string& lib_name,
@@ -154,7 +160,7 @@ void LoaderLIEF::load_elf(
     // Sanity check: don't allow a non-null base for non-relocatable binaries
     // Note: Relocatable executables are tagged with ET_DYN and non-relocatable
     // with ET_EXEC
-    if (_elf->header().file_type() == LIEF::ELF::E_TYPE::ET_EXEC and base != 0)
+    if (_elf->header().file_type() == LIEF::ELF::E_TYPE::ET_EXEC && base != 0)
     {
         throw loader_exception(
             Fmt() << "Error loading " << binary << ": 'base' argument set to 0x"
@@ -163,11 +169,11 @@ void LoaderLIEF::load_elf(
     }
 
     // Get interpreter
-    if (load_interp and _elf->has_interpreter())
+    if (load_interp && _elf->has_interpreter())
     {
         std::string interp_name = _clean_interpreter_name(_elf->interpreter());
         std::string interp_path = find_library_file(interp_name, libdirs);
-        if (not interp_path.empty())
+        if (! interp_path.empty())
         {
             return load_elf_using_interpreter(
                 engine,
@@ -340,7 +346,7 @@ void LoaderLIEF::force_relocation(MaatEngine* engine, addr_t base, const std::st
 {
     for (auto& rel : _elf->relocations())
     {
-        if (rel.has_symbol() and rel.symbol()->name() == rel_name)
+        if (rel.has_symbol() && rel.symbol()->name() == rel_name)
         {
             engine->mem->write(base + rel.address(), value, engine->arch->octets(), true); // ignore perms
             return;
@@ -555,7 +561,7 @@ void LoaderLIEF::load_elf_dependencies(
         }
         // If this was the interpreter, record its entry point
         if (
-            top_loader._elf->has_interpreter() and
+            top_loader._elf->has_interpreter() &&
             _clean_interpreter_name(top_loader._elf->interpreter()) == lib_name
         )
         {
@@ -866,7 +872,7 @@ void LoaderLIEF::perform_elf_relocations(MaatEngine* engine, addr_t base_address
         }
 
         // Check if the symbol is imported
-        if (reloc.has_symbol() and reloc.symbol()->is_imported())
+        if (reloc.has_symbol() && reloc.symbol()->is_imported())
         {
             // Check if function
             if (reloc.symbol()->is_function())
@@ -906,14 +912,14 @@ void LoaderLIEF::perform_elf_relocations(MaatEngine* engine, addr_t base_address
 
 
         if (reloc.type() == (uint32_t)LIEF::ELF::RELOC_i386::R_386_32
-            or reloc.type() == (uint32_t)LIEF::ELF::RELOC_x86_64::R_X86_64_64)
+            || reloc.type() == (uint32_t)LIEF::ELF::RELOC_x86_64::R_X86_64_64)
         {
             reloc_new_value = reloc.is_rela()? 0 : engine->mem->read(reloc_addr, arch_bytes).as_uint();
             reloc_new_value +=  S + A;
             engine->mem->write(reloc_addr, reloc_new_value, arch_bytes, true); // Ignore memory flags
         }
         else if (reloc.type() == (uint32_t)LIEF::ELF::RELOC_x86_64::R_X86_64_32
-            or reloc.type() == (uint32_t)LIEF::ELF::RELOC_x86_64::R_X86_64_32S)
+            || reloc.type() == (uint32_t)LIEF::ELF::RELOC_x86_64::R_X86_64_32S)
         {
             reloc_new_value = reloc.is_rela()? 0 : engine->mem->read(reloc_addr, 4).as_uint(); 
             reloc_new_value += S + A;
@@ -926,7 +932,7 @@ void LoaderLIEF::perform_elf_relocations(MaatEngine* engine, addr_t base_address
             engine->mem->write(reloc_addr, reloc_new_value, 8, true); // Ignore memory flags
         }
         else if (reloc.type() == (uint32_t)LIEF::ELF::RELOC_i386::R_386_PC32
-                or reloc.type() == (uint32_t)LIEF::ELF::RELOC_x86_64::R_X86_64_PC32)
+                || reloc.type() == (uint32_t)LIEF::ELF::RELOC_x86_64::R_X86_64_PC32)
         {
             reloc_new_value = reloc.is_rela()? 0 : engine->mem->read(reloc_addr, 4).as_uint();
             reloc_new_value +=  S + A - P;
@@ -945,34 +951,34 @@ void LoaderLIEF::perform_elf_relocations(MaatEngine* engine, addr_t base_address
             engine->mem->write(reloc_addr, reloc_new_value, 1, true); // Ignore memory flags
         }
         else if (reloc.type() == (uint32_t)LIEF::ELF::RELOC_i386::R_386_GLOB_DAT
-                or reloc.type() == (uint32_t)LIEF::ELF::RELOC_x86_64::R_X86_64_GLOB_DAT)
+                || reloc.type() == (uint32_t)LIEF::ELF::RELOC_x86_64::R_X86_64_GLOB_DAT)
         {
             reloc_new_value = reloc.is_rela()? 0 : engine->mem->read(reloc_addr, arch_bytes).as_uint();
             reloc_new_value +=  S;
             engine->mem->write(reloc_addr, reloc_new_value, arch_bytes, true); // Ignore memory flags
         }
         else if (reloc.type() == (uint32_t)LIEF::ELF::RELOC_i386::R_386_RELATIVE
-                or reloc.type() == (uint32_t)LIEF::ELF::RELOC_x86_64::R_X86_64_RELATIVE)
+                || reloc.type() == (uint32_t)LIEF::ELF::RELOC_x86_64::R_X86_64_RELATIVE)
         {
             reloc_new_value = reloc.is_rela()? 0 : engine->mem->read(reloc_addr, arch_bytes).as_uint();
             reloc_new_value +=  B + A;
             engine->mem->write(reloc_addr, reloc_new_value, arch_bytes, true); // Ignore memory flags
         }
         else if(reloc.type() == (uint32_t)LIEF::ELF::RELOC_i386::R_386_JUMP_SLOT
-                or reloc.type() == (uint32_t)LIEF::ELF::RELOC_x86_64::R_X86_64_JUMP_SLOT)
+                || reloc.type() == (uint32_t)LIEF::ELF::RELOC_x86_64::R_X86_64_JUMP_SLOT)
         {
             reloc_new_value =  S;
             engine->mem->write(reloc_addr, reloc_new_value, arch_bytes, true); // Ignore memory flags
         }
         else if (reloc.type() == (uint32_t)LIEF::ELF::RELOC_i386::R_386_COPY
-                or reloc.type() == (uint32_t)LIEF::ELF::RELOC_x86_64::R_X86_64_COPY)
+                || reloc.type() == (uint32_t)LIEF::ELF::RELOC_x86_64::R_X86_64_COPY)
         {
             if( simu_data_symbol_addr != 0 ){
                 engine->mem->write_buffer(P, engine->mem->raw_mem_at(simu_data_symbol_addr), reloc.symbol()->size(), true ); // Ignore memory flags
             }
         }
         else if (reloc.type() == (uint32_t)LIEF::ELF::RELOC_i386::R_386_IRELATIVE
-                or reloc.type() == (uint32_t)LIEF::ELF::RELOC_x86_64::R_X86_64_IRELATIVE)
+                || reloc.type() == (uint32_t)LIEF::ELF::RELOC_x86_64::R_X86_64_IRELATIVE)
         {
             //reloc_new_value = _call_ifunc_resolver(sym, (uint32_t)engine->mem->read(reloc_addr, 4)->concretize() + B + A);
             reloc_new_value = reloc.is_rela()? 0 : engine->mem->read(reloc_addr, 4).as_uint();

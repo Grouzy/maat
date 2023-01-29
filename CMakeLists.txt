@@ -118,6 +118,14 @@ else()
   add_subdirectory(src/third-party/sleigh/sleigh-cmake sleigh EXCLUDE_FROM_ALL)
 endif()
 
+message(STATUS "Compiling with Boost headers")
+find_package(Boost)
+if (Boost_FOUND)
+	include_directories("${Boost_INCLUDE_DIRS}")
+else()
+	message(STATUS "Boost headers not found, compiling with wide-integer headers")
+endif()
+
 target_link_libraries(
   maat_maat
   PUBLIC GMP::GMP

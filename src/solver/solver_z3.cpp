@@ -13,8 +13,6 @@ namespace solver
  * Translations from maat to z3 expressions 
  * ========================================= */
 
-z3::expr expr_to_z3(z3::context* c, Expr e, size_t extend_to_size=0); // Forward declaration
-
 z3::expr ITE_cond_to_z3(z3::context* c, Expr left, ITECond cond, Expr right)
 {
     z3::expr l = expr_to_z3(c, left);
@@ -34,7 +32,7 @@ z3::expr ITE_cond_to_z3(z3::context* c, Expr left, ITECond cond, Expr right)
 z3::expr expr_to_z3(z3::context* c, Expr e, size_t extend_to_size)
 {
     // This is used to have the same sizes in SHL/SHR
-    if (extend_to_size != 0 and e->size < extend_to_size)
+    if (extend_to_size != 0 && e->size < extend_to_size)
     {
         e = concat(exprcst(extend_to_size-e->size, 0), e);
     }
@@ -136,6 +134,11 @@ SolverZ3::~SolverZ3()
     ctx = nullptr;
 }
 
+z3::context* SolverZ3::context()
+{
+    return this->ctx;
+}
+
 void SolverZ3::reset()
 {
     constraints.clear();
@@ -207,7 +210,7 @@ std::shared_ptr<VarContext> SolverZ3::get_model()
 
 VarContext* SolverZ3::_get_model_raw()
 {
-    if (not has_model)
+    if (!has_model)
         return nullptr;
 
     z3::model m = sol->get_model();

@@ -6,6 +6,8 @@ include(../cmake/folders.cmake)
 
 if(PROJECT_IS_TOP_LEVEL)
   find_package(maat REQUIRED)
+  find_package(Boost REQUIRED)
+  include_directories("${Boost_INCLUDE_DIRS}")
   enable_testing()
 endif()
 

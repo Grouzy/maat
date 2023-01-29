@@ -55,8 +55,8 @@ const Value& TmpContext::get(ir::tmp_t tmp)
 
 bool TmpContext::exists(ir::tmp_t tmp)
 {
-    if (tmp < tmps.size() and tmp >= 0)
-        return not tmps.at(tmp).is_none();
+    if (tmp < tmps.size() && tmp >= 0)
+        return ! tmps.at(tmp).is_none();
     else
         return false;
 }
@@ -87,7 +87,7 @@ std::ostream& operator<<(std::ostream& os, const TmpContext& ctx)
 {
     for (int i = 0; i < ctx.tmps.size(); i++)
     {
-        if (not ctx.tmps[i].is_none())
+        if (! ctx.tmps[i].is_none())
         {
             os << "T_" << std::dec << i << ": ";
             os << ctx.tmps[i] << "\n";
@@ -164,7 +164,7 @@ bool ProcessedInst::Param::is_none() const
 
 bool ProcessedInst::Param::is_abstract() const
 {
-    return not is_none() and value().is_abstract();
+    return ! is_none() && value().is_abstract();
 }
 
 void ProcessedInst::reset()
@@ -277,7 +277,7 @@ void CPUContext::set(ir::reg_t reg, const Number& value)
 
 void CPUContext::_check_assignment_size(int idx, size_t size) const
 {
-    if (not regs.at(idx).is_none() and regs.at(idx).size() != size)
+    if (! regs.at(idx).is_none() && regs.at(idx).size() != size)
         throw cpu_exception( Fmt()
             << "Can't assign " << std::dec << size << "-bits value to "
             << regs.at(idx).size() << "-bits register" << "\n" 
@@ -296,7 +296,7 @@ const Value& CPUContext::get(ir::reg_t reg)
 
     try
     {
-        if (_is_alias(reg) and reg >= 0 and reg < regs.size())
+        if (_is_alias(reg) && reg >= 0 && reg < regs.size())
             regs[idx] = alias_getter(*this, reg);
         return regs.at(idx);
     }
@@ -353,7 +353,7 @@ CPU::CPU(int nb_regs): _cpu_ctx(CPUContext(nb_regs))
 
 Expr CPU::_extract_abstract_if_needed(Expr expr, size_t high_bit, size_t low_bit)
 {
-    if (low_bit == 0 and high_bit >= expr->size-1)
+    if (low_bit == 0 && high_bit >= expr->size-1)
         return expr;
     else
         return extract(expr, high_bit, low_bit);
@@ -436,8 +436,8 @@ event::Action CPU::_get_param_value(
         // Get register
         const Value& res = _cpu_ctx.get(param.reg());
         if (
-            (not get_full_register)
-            and res.size() != param.size()
+            (! get_full_register)
+            && res.size() != param.size()
         )
         {
             dest = _extract_value_bits(res, param.hb, param.lb);
@@ -581,6 +581,12 @@ void CPU::_compute_res_value(
         case ir::Op::SUBPIECE:
             dest.set_subpiece(in0, in1, inst.out.size());
             break;
+        case ir::Op::FLOAT_INT2FLOAT:
+            dest.set_int2float(in0);
+            break;
+        case ir::Op::FLOAT_MULT:
+            dest.set_flt_mult(in0, in1);
+            break;
         case ir::Op::STORE:
         case ir::Op::LOAD:
         case ir::Op::BRANCH:
@@ -600,9 +606,9 @@ void CPU::_compute_res_value(
     }
 
     if (
-        (not pinst.out.is_none())
-        and (not inst.out.is_addr())
-        and (not dest.is_none())
+        (! pinst.out.is_none())
+        && (! inst.out.is_addr())
+        && (! dest.is_none())
     )
     {
         dest.set_overwrite(pinst.out.value(), dest, inst.out.lb);
@@ -643,13 +649,13 @@ event::Action CPU::apply_semantics(
     if (
         (
             ir::is_assignment_op(inst.op)
-            or inst.op == ir::Op::LOAD
-            or (
+            || inst.op == ir::Op::LOAD
+            || (
                 inst.op == ir::Op::CALLOTHER
-                and not inst.out.is_none()
+                && ! inst.out.is_none()
             )
         )
-        and (not inst.out.is_addr())
+        && (! inst.out.is_addr())
     )
     {
         if (inst.out.is_reg())

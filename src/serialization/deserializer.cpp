@@ -55,7 +55,7 @@ Serializable* Deserializer::_deserialize(bool skip_root_obj)
     {
         while (stream().current_pos() < index_pos)
         {
-            if (skip_root_obj and stream().current_pos() == root_obj_data_pos)
+            if (skip_root_obj && stream().current_pos() == root_obj_data_pos)
             {
                 stream().set_pos(root_obj_data_end_pos);
             }
@@ -100,7 +100,6 @@ Deserializer& Deserializer::operator>>(std::string& str)
     str.assign(contents.data(), size); // set string
     return *this;
 }
-
 
 Serializable* Deserializer::Factory::new_object(uid_t class_uid)
 {

@@ -39,9 +39,9 @@ maat::ir::Param sleigh_reg_translate_X86(const std::string& reg_name)
     if (reg_name == "CS") return maat::ir::Reg(maat::X86::CS, 31, 0);
     if (reg_name == "DS") return maat::ir::Reg(maat::X86::DS, 31, 0);
     if (reg_name == "ES") return maat::ir::Reg(maat::X86::ES, 31, 0);
-    if (reg_name == "GS" or reg_name == "GS_OFFSET")
+    if (reg_name == "GS" || reg_name == "GS_OFFSET")
         return maat::ir::Reg(maat::X86::GS, 31, 0);
-    if (reg_name == "FS" or reg_name == "FS_OFFSET")
+    if (reg_name == "FS" || reg_name == "FS_OFFSET")
         return maat::ir::Reg(maat::X86::FS, 31, 0);
     if (reg_name == "SS") return maat::ir::Reg(maat::X86::SS, 31, 0);
 
@@ -566,9 +566,9 @@ maat::ir::Param sleigh_reg_translate_X64(const std::string& reg_name)
     if (reg_name == "CS") return maat::ir::Reg(maat::X64::CS, 63, 0);
     if (reg_name == "DS") return maat::ir::Reg(maat::X64::DS, 63, 0);
     if (reg_name == "ES") return maat::ir::Reg(maat::X64::ES, 63, 0);
-    if (reg_name == "GS" or reg_name == "GS_OFFSET")
+    if (reg_name == "GS" || reg_name == "GS_OFFSET")
         return maat::ir::Reg(maat::X64::GS, 63, 0);
-    if (reg_name == "FS" or reg_name == "FS_OFFSET")
+    if (reg_name == "FS" || reg_name == "FS_OFFSET")
         return maat::ir::Reg(maat::X64::FS, 63, 0);
     if (reg_name == "SS") return maat::ir::Reg(maat::X64::SS, 63, 0);
 

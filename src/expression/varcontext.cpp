@@ -19,7 +19,7 @@ VarContext::VarContext(unsigned int i, Endian endian): id(i), _endianness(endian
 
 void VarContext::set(const std::string& name, cst_t value)
 {
-    if (not contains(name))
+    if (!contains(name))
         varmap[name] = Number(64);
     varmap[name].set_cst(value);
     id = ++(VarContext::_id_cnt);
@@ -254,10 +254,7 @@ void VarContext::print(std::ostream& os ) const
     {
         if (var.second.is_mpz())
         {
-            char str[500];  // Enough to store the string representation
-                            // of a number on 512 bits
-            mpz_get_str(str, 16, var.second.mpz_.get_mpz_t()); // Base 36 to be quicker
-            os << var.first << " : 0x" << std::string(str) << std::endl;
+            os << var.first << " : 0x" << var.second.mpz_.str() << std::endl;
         }
         else
             os << var.first << " : " << std::hex << "0x" << var.second.get_ucst() << std::dec << std::endl;

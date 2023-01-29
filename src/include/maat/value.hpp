@@ -73,6 +73,7 @@ public:
     // TODO: doc
     void set_neg(const Value& n);
     void set_not(const Value& n);
+    void set_int2float(const Value& n);
     void set_add(const Value& n1, const Value& n2);
     void set_sub(const Value& n1, const Value& n2);
     void set_mul(const Value& n1, const Value& n2);
@@ -83,6 +84,7 @@ public:
     void set_and(const Value& n1, const Value& n2);
     void set_or(const Value& n1, const Value& n2);
     void set_sdiv(const Value& n1, const Value& n2);
+    void set_flt_mult(const Value& n1, const Value& n2);
     void set_div(const Value& n1, const Value& n2);
     void set_extract(const Value& n, unsigned int high, unsigned int low);
     void set_concat(const Value& n1, const Value& n2);

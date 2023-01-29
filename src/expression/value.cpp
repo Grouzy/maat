@@ -89,17 +89,17 @@ bool Value::is_none() const
 
 bool Value::is_symbolic(const VarContext& ctx) const
 {
-    return is_abstract() and _expr->is_symbolic(ctx);
+    return is_abstract() && _expr->is_symbolic(ctx);
 }
 
 bool Value::is_concolic(const VarContext& ctx) const
 {
-    return is_abstract() and _expr->is_concolic(ctx);
+    return is_abstract() && _expr->is_concolic(ctx);
 }
 
 bool Value::is_concrete(const VarContext& ctx) const
 {
-    return not is_abstract() or _expr->is_concrete(ctx);
+    return !is_abstract() || _expr->is_concrete(ctx);
 }
 
 Expr Value::as_expr() const
@@ -185,9 +185,19 @@ void Value::set_not(const Value& n)
     }
 }
 
+void Value::set_int2float(const Value& n)
+{
+    if (n.is_abstract())
+        __debugbreak();
+    else
+    {
+        _number.set_cst((double)(n.number().get_cst()));
+    }
+}
+
 void Value::set_add(const Value& n1, const Value& n2)
 {
-    if (n1.is_abstract() or n2.is_abstract())
+    if (n1.is_abstract() || n2.is_abstract())
     {
         *this = n1.as_expr() + n2.as_expr();
     }
@@ -200,7 +210,7 @@ void Value::set_add(const Value& n1, const Value& n2)
 
 void Value::set_sub(const Value& n1, const Value& n2)
 {
-    if (n1.is_abstract() or n2.is_abstract())
+    if (n1.is_abstract() || n2.is_abstract())
     {
         *this = n1.as_expr() - n2.as_expr();
     }
@@ -213,7 +223,7 @@ void Value::set_sub(const Value& n1, const Value& n2)
 
 void Value::set_mul(const Value& n1, const Value& n2)
 {
-    if (n1.is_abstract() or n2.is_abstract())
+    if (n1.is_abstract() || n2.is_abstract())
     {
         *this = n1.as_expr() * n2.as_expr();
     }
@@ -226,7 +236,7 @@ void Value::set_mul(const Value& n1, const Value& n2)
 
 void Value::set_xor(const Value& n1, const Value& n2)
 {
-    if (n1.is_abstract() or n2.is_abstract())
+    if (n1.is_abstract() || n2.is_abstract())
     {
         *this = n1.as_expr() ^ n2.as_expr();
     }
@@ -239,7 +249,7 @@ void Value::set_xor(const Value& n1, const Value& n2)
 
 void Value::set_shl(const Value& n1, const Value& n2)
 {
-    if (n1.is_abstract() or n2.is_abstract())
+    if (n1.is_abstract() || n2.is_abstract())
     {
         *this = n1.as_expr() << n2.as_expr();
     }
@@ -252,7 +262,7 @@ void Value::set_shl(const Value& n1, const Value& n2)
 
 void Value::set_shr(const Value& n1, const Value& n2)
 {
-    if (n1.is_abstract() or n2.is_abstract())
+    if (n1.is_abstract() || n2.is_abstract())
     {
         *this = n1.as_expr() >> n2.as_expr();
     }
@@ -265,7 +275,7 @@ void Value::set_shr(const Value& n1, const Value& n2)
 
 void Value::set_sar(const Value& n1, const Value& n2)
 {
-    if (n1.is_abstract() or n2.is_abstract())
+    if (n1.is_abstract() || n2.is_abstract())
     {
         *this = sar(n1.as_expr(), n2.as_expr());
     }
@@ -278,7 +288,7 @@ void Value::set_sar(const Value& n1, const Value& n2)
 
 void Value::set_and(const Value& n1, const Value& n2)
 {
-    if (n1.is_abstract() or n2.is_abstract())
+    if (n1.is_abstract() || n2.is_abstract())
     {
         *this = n1.as_expr() & n2.as_expr();
     }
@@ -291,7 +301,7 @@ void Value::set_and(const Value& n1, const Value& n2)
 
 void Value::set_or(const Value& n1, const Value& n2)
 {
-    if (n1.is_abstract() or n2.is_abstract())
+    if (n1.is_abstract() || n2.is_abstract())
     {
         *this = n1.as_expr() | n2.as_expr();
     }
@@ -304,7 +314,7 @@ void Value::set_or(const Value& n1, const Value& n2)
 
 void Value::set_sdiv(const Value& n1, const Value& n2)
 {
-    if (n1.is_abstract() or n2.is_abstract())
+    if (n1.is_abstract() || n2.is_abstract())
     {
         *this = sdiv(n1.as_expr(), n2.as_expr());
     }
@@ -315,9 +325,20 @@ void Value::set_sdiv(const Value& n1, const Value& n2)
     }
 }
 
+void Value::set_flt_mult(const Value& n1, const Value& n2)
+{
+    if (n1.is_abstract() || n2.is_abstract())
+        __debugbreak();
+    else
+    {
+        _number.set_cst((double)n1.number().get_cst() * (double)n2.number().get_cst());
+        type = Value::Type::CONCRETE;
+    }
+}
+
 void Value::set_div(const Value& n1, const Value& n2)
 {
-    if (n1.is_abstract() or n2.is_abstract())
+    if (n1.is_abstract() || n2.is_abstract())
     {
         *this = n1.as_expr() / n2.as_expr();
     }
@@ -343,7 +364,7 @@ void Value::set_extract(const Value& n, unsigned int high, unsigned int low)
 
 void Value::set_concat(const Value& n1, const Value& n2)
 {
-    if (n1.is_abstract() or n2.is_abstract())
+    if (n1.is_abstract() || n2.is_abstract())
     {
         *this = concat(n1.as_expr(), n2.as_expr());
     }
@@ -356,7 +377,7 @@ void Value::set_concat(const Value& n1, const Value& n2)
 
 void Value::set_rem(const Value& n1, const Value& n2)
 {
-    if (n1.is_abstract() or n2.is_abstract())
+    if (n1.is_abstract() || n2.is_abstract())
     {
         *this = n1.as_expr() % n2.as_expr();
     }
@@ -369,7 +390,7 @@ void Value::set_rem(const Value& n1, const Value& n2)
 
 void Value::set_srem(const Value& n1, const Value& n2)
 {
-    if (n1.is_abstract() or n2.is_abstract())
+    if (n1.is_abstract() || n2.is_abstract())
     {
         *this = smod(n1.as_expr(), n2.as_expr());
     }
@@ -383,7 +404,7 @@ void Value::set_srem(const Value& n1, const Value& n2)
 // Write n2 over n1 starting from lowest byte 'lb'
 void Value::set_overwrite(const Value& n1, const Value& n2, int lb)
 {
-    if (n1.is_abstract() or n2.is_abstract())
+    if (n1.is_abstract() || n2.is_abstract())
     {
         // overwrite_expr_bits takes higher bit
         *this = overwrite_expr_bits(n1.as_expr(), n2.as_expr(), lb+n2.size()-1);
@@ -494,7 +515,7 @@ void Value::set_sext(int ext_size, const Value& n)
 
 void Value::set_less_than(const Value& n1, const Value& n2, size_t size)
 {
-    if (n1.is_abstract() or n2.is_abstract())
+    if (n1.is_abstract() || n2.is_abstract())
     {
         *this = ITE(n1.as_expr(), ITECond::LT, n2.as_expr(),
                     exprcst(size,1),
@@ -510,7 +531,7 @@ void Value::set_less_than(const Value& n1, const Value& n2, size_t size)
 
 void Value::set_lessequal_than(const Value& n1, const Value& n2, size_t size)
 {
-    if (n1.is_abstract() or n2.is_abstract())
+    if (n1.is_abstract() || n2.is_abstract())
     {
         *this = ITE(n1.as_expr(), ITECond::LE, n2.as_expr(),
                     exprcst(size,1),
@@ -526,7 +547,7 @@ void Value::set_lessequal_than(const Value& n1, const Value& n2, size_t size)
 
 void Value::set_sless_than(const Value& n1, const Value& n2, size_t size)
 {
-    if (n1.is_abstract() or n2.is_abstract())
+    if (n1.is_abstract() || n2.is_abstract())
     {
         *this = ITE(n1.as_expr(), ITECond::SLT, n2.as_expr(),
                     exprcst(size,1),
@@ -542,7 +563,7 @@ void Value::set_sless_than(const Value& n1, const Value& n2, size_t size)
 
 void Value::set_slessequal_than(const Value& n1, const Value& n2, size_t size)
 {
-    if (n1.is_abstract() or n2.is_abstract())
+    if (n1.is_abstract() || n2.is_abstract())
     {
         *this = ITE(n1.as_expr(), ITECond::SLE, n2.as_expr(),
                     exprcst(size,1),
@@ -558,7 +579,7 @@ void Value::set_slessequal_than(const Value& n1, const Value& n2, size_t size)
 
 void Value::set_equal_to(const Value& n1, const Value& n2, size_t size)
 {
-    if (n1.is_abstract() or n2.is_abstract())
+    if (n1.is_abstract() || n2.is_abstract())
     {
         *this = ITE(n1.as_expr(), ITECond::EQ, n2.as_expr(),
                     exprcst(size,1),
@@ -574,7 +595,7 @@ void Value::set_equal_to(const Value& n1, const Value& n2, size_t size)
 
 void Value::set_notequal_to(const Value& n1, const Value& n2, size_t size)
 {
-    if (n1.is_abstract() or n2.is_abstract())
+    if (n1.is_abstract() || n2.is_abstract())
     {
         *this = ITE(n1.as_expr(), ITECond::EQ, n2.as_expr(),
                     exprcst(size,0),
@@ -590,7 +611,7 @@ void Value::set_notequal_to(const Value& n1, const Value& n2, size_t size)
 
 void Value::set_carry(const Value& n1, const Value& n2, size_t size)
 {
-    if (n1.is_abstract() or n2.is_abstract())
+    if (n1.is_abstract() || n2.is_abstract())
     {
         // carry is set if result is smaller than one of the operand
         Expr    in0 = n1.as_expr(),
@@ -617,7 +638,7 @@ void Value::set_carry(const Value& n1, const Value& n2, size_t size)
         const Number&   in0 = n1.as_number(),
                         in1 = n2.as_number();
         tmp.set_add(in0, in1);
-        if (tmp.less_than(in0) or tmp.less_than(in1))
+        if (tmp.less_than(in0) || tmp.less_than(in1))
             _number.set_cst(1);
         else
             _number.set_cst(0);
@@ -627,7 +648,7 @@ void Value::set_carry(const Value& n1, const Value& n2, size_t size)
 
 void Value::set_scarry(const Value& n1, const Value& n2, size_t size)
 {
-    if (n1.is_abstract() or n2.is_abstract())
+    if (n1.is_abstract() || n2.is_abstract())
     {
         // signed carry (i.e overflow) is set if:
         // - (1) both operands are positive and result negative
@@ -662,16 +683,16 @@ void Value::set_scarry(const Value& n1, const Value& n2, size_t size)
         tmp.set_add(in0, in1);
         Number zero(in0.size, 0);
         if (
-            zero.slessequal_than(in0) and
-            zero.slessequal_than(in1) and
+            zero.slessequal_than(in0) &&
+            zero.slessequal_than(in1) &&
             tmp.sless_than(zero)
         )
         {
             _number.set_cst(1);
         }
         else if (
-            in0.sless_than(zero) and
-            in1.sless_than(zero) and
+            in0.sless_than(zero) &&
+            in1.sless_than(zero) &&
             zero.slessequal_than(tmp)
         )
         {
@@ -687,7 +708,7 @@ void Value::set_scarry(const Value& n1, const Value& n2, size_t size)
 
 void Value::set_sborrow(const Value& n1, const Value& n2, size_t size)
 {
-    if (n1.is_abstract() or n2.is_abstract())
+    if (n1.is_abstract() || n2.is_abstract())
     {
         // signed borrow (i.e overflow) is set when the MSB of
         // both operands is different and result's MSB is the 
@@ -731,16 +752,16 @@ void Value::set_sborrow(const Value& n1, const Value& n2, size_t size)
         tmp.set_sub(in0, in1);
         Number zero(in0.size, 0);
         if (
-            zero.slessequal_than(in0) and
-            in1.sless_than(zero) and
+            zero.slessequal_than(in0) &&
+            in1.sless_than(zero) &&
             tmp.sless_than(zero)
         )
         {
             _number.set_cst(1);
         }
         else if (
-            in0.sless_than(zero) and
-            zero.slessequal_than(in1) and
+            in0.sless_than(zero) &&
+            zero.slessequal_than(in1) &&
             zero.slessequal_than(tmp)
         )
         {
@@ -756,7 +777,7 @@ void Value::set_sborrow(const Value& n1, const Value& n2, size_t size)
 
 void Value::set_subpiece(const Value& n1, const Value& n2, size_t size)
 {
-    if (n1.is_abstract() or n2.is_abstract())
+    if (n1.is_abstract() || n2.is_abstract())
     {
         Expr    in0 = n1.as_expr(),
                 in1 = n2.as_expr();
@@ -849,7 +870,7 @@ void Value::set_bool_negate(const Value& n, size_t size)
 
 void Value::set_bool_and(const Value& n1, const Value& n2, size_t size)
 {
-    if (n1.is_abstract() or n2.is_abstract())
+    if (n1.is_abstract() || n2.is_abstract())
     {
         *this = ITE(
                     n1.as_expr(), 
@@ -870,7 +891,7 @@ void Value::set_bool_and(const Value& n1, const Value& n2, size_t size)
         _number.size = size;
         if (
             n1.as_number().is_null()
-            or n2.as_number().is_null()
+            || n2.as_number().is_null()
         )
             _number.set(0);
         else
@@ -881,7 +902,7 @@ void Value::set_bool_and(const Value& n1, const Value& n2, size_t size)
 
 void Value::set_bool_or(const Value& n1, const Value& n2, size_t size)
 {
-    if (n1.is_abstract() or n2.is_abstract())
+    if (n1.is_abstract() || n2.is_abstract())
     {
         *this = ITE(
                     n1.as_expr(), 
@@ -902,7 +923,7 @@ void Value::set_bool_or(const Value& n1, const Value& n2, size_t size)
         _number.size = size;
         if (
             !n1.as_number().is_null()
-            or !n2.as_number().is_null()
+            || !n2.as_number().is_null()
         )
             _number.set(1);
         else
@@ -913,7 +934,7 @@ void Value::set_bool_or(const Value& n1, const Value& n2, size_t size)
 
 void Value::set_bool_xor(const Value& n1, const Value& n2, size_t size)
 {
-    if (n1.is_abstract() or n2.is_abstract())
+    if (n1.is_abstract() || n2.is_abstract())
     {
         *this = ITE(
                     n1.as_expr(), 
@@ -939,8 +960,8 @@ void Value::set_bool_xor(const Value& n1, const Value& n2, size_t size)
     {
         _number.size = size;
         if (
-            (!n1.as_number().is_null() and n2.as_number().is_null())
-            or (n1.as_number().is_null() and !n2.as_number().is_null())
+            (!n1.as_number().is_null() && n2.as_number().is_null())
+            || (n1.as_number().is_null() && !n2.as_number().is_null())
         )
             _number.set(1);
         else
@@ -955,8 +976,8 @@ void Value::set_ITE(
 )
 {
     bool is_true = true;
-    if (c1.is_abstract() or c2.is_abstract()
-        or if_true.is_abstract() or if_false.is_abstract())
+    if (c1.is_abstract() || c2.is_abstract()
+        || if_true.is_abstract() || if_false.is_abstract())
     {
         *this = ITE(c1.as_expr(), cond, c2.as_expr(), if_true.as_expr(), if_false.as_expr());
     }
@@ -1459,7 +1480,7 @@ Value extract(const Value& arg, unsigned long higher, unsigned long lower)
 Value concat(const Value& upper, const Value& lower)
 {
     Value res;
-    if (upper.is_abstract() or lower.is_abstract())
+    if (upper.is_abstract() || lower.is_abstract())
         res = concat(upper.as_expr(), lower.as_expr());
     else
     {

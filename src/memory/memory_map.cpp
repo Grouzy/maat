@@ -92,7 +92,7 @@ void MemMapManager::map(MemMap new_map)
         else
         {
             if (
-                new_map.name.empty() and
+                new_map.name.empty() &&
                 old_map.intersects_with_range(new_map.start, new_map.end)
             )
             {
@@ -166,7 +166,7 @@ std::ostream& operator<<(std::ostream& os, const MemMapManager& mem)
     for (const auto& map : mem.get_maps())
     {
         os << std::hex << "0x" << std::left << std::setw(addr_w-2) << map.start << "0x" << std::left << std::setw(addr_w-2) << map.end;
-        if (not map.name.empty())
+        if (! map.name.empty())
             os << map.name;
         os << "\n";
     }

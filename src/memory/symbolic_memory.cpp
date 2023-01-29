@@ -217,6 +217,10 @@ bool SymbolicMemEngine::contains_symbolic_write(addr_t start, addr_t end)
     return write_intervals.contains_interval(start, end);
 }
 
+const std::vector<SymbolicMemWrite>& SymbolicMemEngine::get_writes()
+{
+    return writes;
+}
 
 // Return the expression result of the fact that 'expr' is
 // written over 'prev' starting from byte 'index'. This function assumes
@@ -354,14 +358,14 @@ Expr SymbolicMemEngine::concrete_ptr_read(Expr addr, int nb_bytes, Expr base_exp
         // This can happen when reading from a constant on archs that have addresses
         // on more than 64 bits (e.g EVM). The MemEngine will create 64 bits
         // addresses by default, so we need to adjust their size here manually
-        if (write.addr->size > addr->size and addr->is_type(ExprType::CST))
+        if (write.addr->size > addr->size && addr->is_type(ExprType::CST))
             addr = exprcst(write.addr->size, addr->cst());
 
         if( write.refined_value_set.is_cst())
         {
             // Only update value if concrete write falls into the range of the read
             if(
-                write.refined_value_set.min > addr_min - write.value.size()/8 and
+                write.refined_value_set.min > addr_min - write.value.size()/8 &&
                 write.refined_value_set.min < addr_min + nb_bytes
             )
             {
@@ -384,7 +388,7 @@ Expr SymbolicMemEngine::concrete_ptr_read(Expr addr, int nb_bytes, Expr base_exp
             while (i < nb_bytes)
             {
                 // Check if aligned (if option is enabled)
-                if( symptr_force_aligned and (i%(write.value.size()/8) != 0))
+                if( symptr_force_aligned && (i%(write.value.size()/8) != 0))
                 {
                     i++;
                     continue;
@@ -445,7 +449,7 @@ Expr SymbolicMemEngine::symbolic_ptr_read(Expr& addr, ValueSet& addr_value_set, 
             // added here should not be too numerous and be pruned by the SMT solver later on...
             if(
                 write.refined_value_set.min <= addr_max+i
-                and write.refined_value_set.max >= addr_min+i
+                && write.refined_value_set.max >= addr_min+i
             )
             {
                 res = ITE(write.addr, ITECond::EQ, addr+i, _mem_expr_overwrite(tmp_res, write.value.as_expr(), i, _endianness), res);

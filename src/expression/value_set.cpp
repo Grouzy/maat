@@ -2,6 +2,8 @@
 #include <algorithm>
 #include <iostream>
 
+#include "boost/multiprecision/cpp_int.hpp"
+
 namespace maat
 {
 
@@ -42,7 +44,7 @@ ucst_t ValueSet::range()
     if (is_cst())
         return 0;
     else
-        if (max >= cst_mask(size) and min == 0)
+        if (max >= cst_mask(size) && min == 0)
             return max;
         else
             return max-min+1;
@@ -50,11 +52,11 @@ ucst_t ValueSet::range()
 
 bool ValueSet::contains(ucst_t val)
 {
-    if (is_cst() and val == min)
+    if (is_cst() && val == min)
         return true;
     else
-        return  val >= min and 
-                val <= max and
+        return  val >= min && 
+                val <= max &&
                 ((val-min) % stride) == 0;
 }
 
@@ -347,8 +349,8 @@ void ValueSet::set_mul(ValueSet& vs1, ValueSet& vs2)
 void ValueSet::set_mulh(ValueSet& vs1, ValueSet& vs2)
 {
     // Simlar to MUL but there can not be an overflow on this one :)
-    ucst_t new_min = (ucst_t)(((__uint128_t)vs1.min * (__uint128_t)vs2.min) >> size ); 
-    ucst_t new_max = (ucst_t)(((__uint128_t)vs1.max * (__uint128_t)vs2.max) >> size );
+    ucst_t new_min = (ucst_t)(((boost::multiprecision::uint128_t)vs1.min * (boost::multiprecision::uint128_t)vs2.min) >> size );
+    ucst_t new_max = (ucst_t)(((boost::multiprecision::uint128_t)vs1.max * (boost::multiprecision::uint128_t)vs2.max) >> size );
     set(new_min, new_max, 1);
 }
 

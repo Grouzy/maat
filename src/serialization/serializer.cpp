@@ -37,7 +37,7 @@ void Serializer::serialize(const Serializable& obj)
 {
     uid_t root_obj_uid = ptr(&obj); // Add object
     stream() << bits(root_obj_uid); // Write root object uid before all data
-    while (not serialization_queue.empty())
+    while (!serialization_queue.empty())
     {
         const Serializable* next = serialization_queue.front();
         get_index_entry(next).data_pos = stream().current_pos();

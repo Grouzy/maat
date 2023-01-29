@@ -162,8 +162,8 @@ void X86_CPUID_handler(MaatEngine& engine, const ir::Inst& inst, ir::ProcessedIn
     }
     else if (
         leaf == 0x80000002
-        or leaf == 0x80000003
-        or leaf == 0x80000004
+        || leaf == 0x80000003
+        || leaf == 0x80000004
     )
     {
         // Processor brand string continued
@@ -280,7 +280,7 @@ void X86_INT_handler(MaatEngine& engine, const ir::Inst& inst, ir::ProcessedInst
 // Helper function that ensures a contract transaction is set
 void _check_transaction_exists(env::EVM::contract_t contract)
 {
-    if (not contract->transaction.has_value())
+    if (!contract->transaction.has_value())
         throw callother_exception("Trying to access transaction but no transaction is set");
 }
 
@@ -323,7 +323,7 @@ void EVM_DIV_handler(MaatEngine& engine, const ir::Inst& inst, ir::ProcessedInst
     const Value& in1 = pinst.in1.value();
     const Value& in2 = pinst.in2.value();
 
-    if (in2.is_concrete(*engine.vars) and in2.as_number().equal_to(Number(in2.size(), 0)))
+    if (in2.is_concrete(*engine.vars) && in2.as_number().equal_to(Number(in2.size(), 0)))
         pinst.res.set_cst(inst.out.size(), 0);
     else
         pinst.res.set_ITE(
@@ -339,7 +339,7 @@ void EVM_SDIV_handler(MaatEngine& engine, const ir::Inst& inst, ir::ProcessedIns
     const Value& in1 = pinst.in1.value();
     const Value& in2 = pinst.in2.value();
 
-    if (in2.is_concrete(*engine.vars) and in2.as_number().equal_to(Number(in2.size(), 0)))
+    if (in2.is_concrete(*engine.vars) && in2.as_number().equal_to(Number(in2.size(), 0)))
         pinst.res.set_cst(inst.out.size(), 0);
     else
         pinst.res.set_ITE(
@@ -355,7 +355,7 @@ void EVM_MOD_handler(MaatEngine& engine, const ir::Inst& inst, ir::ProcessedInst
     const Value& in1 = pinst.in1.value();
     const Value& in2 = pinst.in2.value();
 
-    if (in2.is_concrete(*engine.vars) and in2.as_number().equal_to(Number(in2.size(), 0)))
+    if (in2.is_concrete(*engine.vars) && in2.as_number().equal_to(Number(in2.size(), 0)))
         pinst.res.set_cst(inst.out.size(), 0);
     else
         pinst.res.set_ITE(
@@ -371,7 +371,7 @@ void EVM_SMOD_handler(MaatEngine& engine, const ir::Inst& inst, ir::ProcessedIns
     const Value& in1 = pinst.in1.value();
     const Value& in2 = pinst.in2.value();
 
-    if (in2.is_concrete(*engine.vars) and in2.as_number().equal_to(Number(in2.size(), 0)))
+    if (in2.is_concrete(*engine.vars) && in2.as_number().equal_to(Number(in2.size(), 0)))
         pinst.res.set_cst(inst.out.size(), 0);
     else
     {
@@ -390,15 +390,15 @@ void EVM_EXP_handler(MaatEngine& engine, const ir::Inst& inst, ir::ProcessedInst
     const Value& in2 = pinst.in2.value();
 
     // X**0 is always 1
-    if (in2.is_concrete(*engine.vars) and in2.as_number().equal_to(Number(in2.size(), 0)))
+    if (in2.is_concrete(*engine.vars) && in2.as_number().equal_to(Number(in2.size(), 0)))
         pinst.res.set_cst(inst.out.size(), 1);
-    else if (in1.is_symbolic(*engine.vars) or in2.is_symbolic(*engine.vars))
+    else if (in1.is_symbolic(*engine.vars) || in2.is_symbolic(*engine.vars))
     {
         throw callother_exception("EXP: exponentiation operation not supported with fully symbolic arguments");
     }
     // TODO(boyan): we could concretize the arguments if they are concolic,
     // but then if we later change the concrete values we loose soundness...
-    else if (in1.is_concolic(*engine.vars) or in2.is_concolic(*engine.vars))
+    else if (in1.is_concolic(*engine.vars) || in2.is_concolic(*engine.vars))
     {
         throw callother_exception("EXP: exponentiation operation not yet supported with fully symbolic arguments");
     }
@@ -417,7 +417,7 @@ void EVM_SIGNEXTEND_handler(MaatEngine& engine, const ir::Inst& inst, ir::Proces
     const Value& in2 = pinst.in2.value();
     Value tmp;
 
-    if (not in1.is_concrete(*engine.vars))
+    if (!in1.is_concrete(*engine.vars))
         throw callother_exception("SIGNEXTEND: not supported for symbolic bytes count");
 
     if (in1.as_uint() >= 32)
@@ -453,7 +453,7 @@ void EVM_BYTE_handler(MaatEngine& engine, const ir::Inst& inst, ir::ProcessedIns
     else
     {
         // NOTE(boyan): we can simulate the symbolic index extract by either
-        // a mask+shift or with a big ITE expression. I am not sure what 
+        // a mask+shift || with a big ITE expression. I am not sure what 
         // the SMT solver prefers...
         Value mask(256, "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff00", 16);
         pinst.res.set_ITE(
@@ -487,7 +487,7 @@ void EVM_MSTORE_handler(MaatEngine& engine, const ir::Inst& inst, ir::ProcessedI
     // but here it's a hacky way to trigger the whole memory processing with handling of
     // symbolic pointers and triggering of event hooks
     bool success = engine.process_store(inst, pinst, contract->memory.mem(), true);
-    if (not success)
+    if (!success)
         throw callother_exception("MSTORE: fatal error writing memory");
 }
 
@@ -501,7 +501,7 @@ void EVM_DUP_handler(MaatEngine& engine, const ir::Inst& inst, ir::ProcessedInst
 {
     env::EVM::contract_t contract = env::EVM::get_contract_for_engine(engine);
     const Value& cnt = pinst.in1.value();
-    if (not cnt.is_concrete(*engine.vars))
+    if (!cnt.is_concrete(*engine.vars))
         throw callother_exception("DUP: got symbolic position");
     // We do cnt-1 because DUP<n> gets element <n-1> in the stack
     const Value& val = contract->stack.get(cnt.as_uint(*engine.vars)-1);
@@ -512,7 +512,7 @@ void EVM_SWAP_handler(MaatEngine& engine, const ir::Inst& inst, ir::ProcessedIns
 {
     env::EVM::contract_t contract = env::EVM::get_contract_for_engine(engine);
     const Value& cnt = pinst.in1.value();
-    if (not cnt.is_concrete(*engine.vars))
+    if (!cnt.is_concrete(*engine.vars))
         throw callother_exception("SWAP: got symbolic position");
     int pos = cnt.as_uint(*engine.vars);
     Value tmp = contract->stack.get(pos);
@@ -566,7 +566,7 @@ void EVM_ENV_INFO_handler(MaatEngine& engine, const ir::Inst& inst, ir::Processe
         {
             _check_transaction_exists(contract);
             const Value& offset = pinst.in2.value();
-            if (not offset.is_concrete(*engine.vars))
+            if (!offset.is_concrete(*engine.vars))
                 throw callother_exception("CALLDATALOAD: not supported with symbolic offset");
             pinst.res = contract->transaction->data_load_word(offset.as_uint(*engine.vars));
             break;
@@ -614,7 +614,7 @@ void EVM_ENV_INFO_handler(MaatEngine& engine, const ir::Inst& inst, ir::Processe
         {
             Value addr = contract->stack.get(0);
             contract->stack.pop();
-            if (not addr.is_concrete(*engine.vars))
+            if (!addr.is_concrete(*engine.vars))
                 throw callother_exception("EXTCODESIZE: not supported for symbolic address");
             env::EVM::contract_t ext_contract = env::EVM::get_ethereum(engine)->get_contract_by_address(
                 extract(addr, 159, 0).as_number() // Extract 160 bits for address
@@ -628,7 +628,7 @@ void EVM_ENV_INFO_handler(MaatEngine& engine, const ir::Inst& inst, ir::Processe
         }
         case 0x3d: // RETURNDATASIZE
         {
-            if (not contract->result_from_last_call.has_value())
+            if (!contract->result_from_last_call.has_value())
                 pinst.res = Value(256, 0);
             else
                 pinst.res = Value(256, contract->result_from_last_call->return_data_size());
@@ -640,7 +640,7 @@ void EVM_ENV_INFO_handler(MaatEngine& engine, const ir::Inst& inst, ir::Processe
             addr_t offset = contract->stack.get(1).as_uint(*engine.vars);
             unsigned int size = contract->stack.get(2).as_uint(*engine.vars);
             contract->stack.pop(3);
-            if (not contract->result_from_last_call.has_value())
+            if (!contract->result_from_last_call.has_value())
             {
                 // Write zeroes
                 std::vector<Value> zeroes (size, Value(8,0));
@@ -698,7 +698,7 @@ void EVM_KECCAK_handler(MaatEngine& engine, const ir::Inst& inst, ir::ProcessedI
     Value len = pinst.in2.value();
     uint8_t* raw_bytes = nullptr;
 
-    if (not len.is_concrete(*engine.vars))
+    if (!len.is_concrete(*engine.vars))
         throw callother_exception("KECCAK: not supported with symbolic length");
 
     // Handle special case of keccak("")
@@ -715,7 +715,7 @@ void EVM_KECCAK_handler(MaatEngine& engine, const ir::Inst& inst, ir::ProcessedI
         0
     ); // Ugly hack to craft fake param to read correct number of bytes from memory
 
-    if (not engine.resolve_addr_param(
+    if (!engine.resolve_addr_param(
         fake_param,
         pinst.in1,
         contract->memory.mem())
@@ -724,7 +724,7 @@ void EVM_KECCAK_handler(MaatEngine& engine, const ir::Inst& inst, ir::ProcessedI
 
     Value to_hash = pinst.in1.value(); // Now contains the read value from memory
 
-    if (not addr.is_symbolic(*engine.vars))
+    if (!addr.is_symbolic(*engine.vars))
     {
         addr_t a = addr.as_uint(*engine.vars);
         raw_bytes = contract->memory.mem().raw_mem_at(a);
@@ -811,9 +811,9 @@ void _evm_generic_call(
     contract->stack.pop(7);
 
     // We don't support symbolic offsets to args data
-    if (not argsOff.is_concrete(*engine.vars))
+    if (!argsOff.is_concrete(*engine.vars))
         throw callother_exception("CALL: argsOff parameter is symbolic. Not yet supported");
-    if (not argsLen.is_concrete(*engine.vars))
+    if (!argsLen.is_concrete(*engine.vars))
         throw callother_exception("CALL: argsLen parameter is symbolic. Not yet supported");
 
     // We allow concolic address
@@ -873,14 +873,14 @@ void EVM_CREATE_handler(MaatEngine& engine, const ir::Inst& inst, ir::ProcessedI
     Value value = contract->stack.get(0);
     Value offset = contract->stack.get(1);
     Value len = contract->stack.get(2);
-    // TODO: for CREATE2, we leave the salt on the stack? Or maybe append it
+    // TODO: for CREATE2, we leave the salt on the stack? || maybe append it
     // in the tx_data?
     contract->stack.pop(3);
 
     // We don't support symbolic offsets to code data
-    if (not offset.is_concrete(*engine.vars))
+    if (!offset.is_concrete(*engine.vars))
         throw callother_exception("CREATE: data 'offset' parameter is symbolic. Not supported");
-    if (not len.is_concrete(*engine.vars))
+    if (!len.is_concrete(*engine.vars))
         throw callother_exception("CREATE: data 'length' parameter is symbolic. Not supported");
 
     // Read transaction data
@@ -927,9 +927,9 @@ void EVM_DELEGATECALL_handler(
     contract->stack.pop(6);
 
     // We don't support symbolic offsets to args data
-    if (not argsOff.is_concrete(*engine.vars))
+    if (!argsOff.is_concrete(*engine.vars))
         throw callother_exception("DELEGATECALL: argsOff parameter is symbolic. Not yet supported");
-    if (not argsLen.is_concrete(*engine.vars))
+    if (!argsLen.is_concrete(*engine.vars))
         throw callother_exception("DELEGATECALL: argsLen parameter is symbolic. Not yet supported");
 
     // Read transaction data
@@ -973,9 +973,9 @@ void EVM_STATICCALL_handler(
     contract->stack.pop(6);
 
     // We don't support symbolic offsets to args data
-    if (not argsOff.is_concrete(*engine.vars))
+    if (!argsOff.is_concrete(*engine.vars))
         throw callother_exception("STATICCALL: argsOff parameter is symbolic. Not yet supported");
-    if (not argsLen.is_concrete(*engine.vars))
+    if (!argsLen.is_concrete(*engine.vars))
         throw callother_exception("STATICCALL: argsLen parameter is symbolic. Not yet supported");
 
     // Read transaction data

@@ -193,7 +193,7 @@ info::Stop MaatEngine::run(int max_inst)
     while (next_inst)
     {
         // Handle potential pending X memory overwrites: if a user callback
-        // or a user script did mess with the memory, make sure that any lifted
+        // || a user script did mess with the memory, make sure that any lifted
         // instructions that were overwritten gets their cached IR deleted
         handle_pending_x_mem_overwrites();
 
@@ -206,12 +206,12 @@ info::Stop MaatEngine::run(int max_inst)
         }
 
         // Get next instruction to execute
-        if (not cpu.ctx().get(arch->pc()).is_symbolic(*vars))
+        if (! cpu.ctx().get(arch->pc()).is_symbolic(*vars))
         {
             to_execute = cpu.ctx().get(arch->pc()).as_uint(*vars);
             // Reload pending IR state if it matches current PC
             if (
-                current_ir_state.has_value() and
+                current_ir_state.has_value() &&
                 current_ir_state->addr == to_execute
             ){
                 ir_inst_id = current_ir_state->inst_id;
@@ -230,7 +230,7 @@ info::Stop MaatEngine::run(int max_inst)
         }
 
         // If the target to execute is a function emulated with a callback,
-        // process the callback and branch to next IR block
+        // process the callback && branch to next IR block
         if (symbols->is_callback_emulated_function(to_execute))
         {
             
@@ -248,7 +248,7 @@ info::Stop MaatEngine::run(int max_inst)
         }
 
         // Check if max_instr limit has been reached
-        if (check_max_inst and max_inst <= 0)
+        if (check_max_inst && max_inst <= 0)
         {
             info.stop = info::Stop::INST_COUNT;
             info.addr = to_execute;
@@ -272,7 +272,7 @@ info::Stop MaatEngine::run(int max_inst)
                 return info.stop;
             }
             // If user callback changed the address to execute, exit the loop
-            if (info.addr.has_value() and *info.addr != to_execute)
+            if (info.addr.has_value() && *info.addr != to_execute)
             {
                 cpu.ctx().set(arch->pc(), *info.addr);
                 info.reset();
@@ -311,7 +311,7 @@ info::Stop MaatEngine::run(int max_inst)
             current_ir_state = ir::IRMap::InstLocation(asm_inst->addr(), ir_inst_id);
 
             // Sanity checks
-            if (ir_inst_id < 0 or ir_inst_id >= asm_inst->nb_ir_inst())
+            if (ir_inst_id < 0 || ir_inst_id >= asm_inst->nb_ir_inst())
             {
                 info.stop = info::Stop::FATAL;
                 log.fatal("MaatEngine::run(): got wrong inst_id. Should not happen!");
@@ -319,11 +319,12 @@ info::Stop MaatEngine::run(int max_inst)
             }
 
             // Get IR instruction to execute
-            const ir::Inst& inst = asm_inst->instructions()[ir_inst_id];            
+            const ir::Inst& inst = asm_inst->instructions()[ir_inst_id];          
+            this->last_inst = inst;
 
             // TODO: add settings.log_ir option
             // if settings.log_ir:
-            //      log.debug("Run IR: ", inst);
+            //      log.info("Run IR: ", inst);
             // std::cout << "DEBUG " << inst << std::endl;
 
             // Check for unsupported instruction
@@ -342,6 +343,7 @@ info::Stop MaatEngine::run(int max_inst)
             event::Action tmp_action = event::Action::CONTINUE;
             info.addr = asm_inst->addr();
             ir::ProcessedInst& pinst = cpu.pre_process_inst(inst, tmp_action, *this);
+            this->last_processed_inst = pinst;
 
             // Check event results on register read
             if (tmp_action == event::Action::ERROR)
@@ -357,7 +359,7 @@ info::Stop MaatEngine::run(int max_inst)
             }
             info.reset(); // Reset info here because the CPU can not do it
 
-            // Process Addr parameters and load them from memory
+            // Process Addr parameters && load them from memory
             info.addr = asm_inst->addr();
             ASSERT_SUCCESS(process_addr_params(inst, pinst))
 
@@ -393,7 +395,7 @@ info::Stop MaatEngine::run(int max_inst)
 
             if (
                 inst.op == ir::Op::STORE 
-                or (inst.out.is_addr() and ir::is_assignment_op(inst.op))
+                || (inst.out.is_addr() && ir::is_assignment_op(inst.op))
             )
             {
                 info.addr = asm_inst->addr();
@@ -403,7 +405,7 @@ info::Stop MaatEngine::run(int max_inst)
             }
 
             // If instruction result is concrete expression, make it a concrete value
-            if (pinst.res.is_abstract() and pinst.res.expr()->is_concrete(*vars))
+            if (pinst.res.is_abstract() && pinst.res.expr()->is_concrete(*vars))
             {
                 pinst.res = pinst.res.expr()->as_number(*vars);
             }
@@ -412,11 +414,11 @@ info::Stop MaatEngine::run(int max_inst)
             if (settings.force_simplify)
             {
                 // Simplify only we set a register to a non concrete value
-                // or if the operation was a callother
+                // || if the operation was a callother
                 if (
                     pinst.res.is_abstract() 
-                    and (inst.out.is_reg() or inst.op == ir::Op::CALLOTHER)
-                    and not pinst.res.expr()->is_concrete(*vars)
+                    && (inst.out.is_reg() || inst.op == ir::Op::CALLOTHER)
+                    && ! pinst.res.expr()->is_concrete(*vars)
                 )
                 {
                     pinst.res = simplifier->simplify(pinst.res.expr());
@@ -428,7 +430,7 @@ info::Stop MaatEngine::run(int max_inst)
             HANDLE_EVENT_ACTION(
                 cpu.apply_semantics(inst, pinst, *this)
             )
-            info.reset(); // Reset info here because the CPU can not do it
+            info.reset(); // Reset info here because the CPU can ! do it
 
             // Record executed IR instruction in statistics
             MaatStats::instance().inc_executed_ir_insts();
@@ -446,7 +448,7 @@ info::Stop MaatEngine::run(int max_inst)
                 if (ir_inst_id == asm_inst->nb_ir_inst()-1)
                 {
                     // That was the last IR inst of this AsmInst,
-                    // update PC, exit and go to next AsmInst
+                    // update PC, exit && go to next AsmInst
                     cpu.ctx().set(arch->pc(), asm_inst->addr() + asm_inst->raw_size());
                     break;
                 }
@@ -454,7 +456,7 @@ info::Stop MaatEngine::run(int max_inst)
                     ir_inst_id += 1;
             }
             // else: pcode relative branching, ir_inst_id has already
-            // been updated by process_branch(), so do nothing and 
+            // been updated by process_branch(), so do nothing && 
             // just loop again
         }
 
@@ -582,11 +584,11 @@ bool MaatEngine::process_branch(
             break;
         case ir::Op::CBRANCH:
             // If we record a symbolic constraints, simplify it...
-            if (settings.record_path_constraints and not in1.is_concrete(*vars))
+            if (settings.record_path_constraints && ! in1.is_concrete(*vars))
                 in1 = simplifier->simplify(in1.as_expr());
 
-            // Try to resolve the branch is not symbolic
-            if (not in1.is_symbolic(*vars))
+            // Try to resolve the branch is ! symbolic
+            if (! in1.is_symbolic(*vars))
             {
                 if (in1.as_uint(*vars) != 0) // branch condition is true, branch to target
                     opt_taken = true;
@@ -601,9 +603,9 @@ bool MaatEngine::process_branch(
             // TODO: indicate that the branch is pcode relative if it's the case
             // probably add a info.branch.type field
             if (
-                hooks.has_hooks(Event::BRANCH, When::BEFORE) or
+                hooks.has_hooks(Event::BRANCH, When::BEFORE) ||
                 (
-                 (not in1.is_concrete(*vars)) and
+                 (! in1.is_concrete(*vars)) &&
                   hooks.has_hooks(Event::PATH, When::BEFORE)
                 )
             )
@@ -662,7 +664,7 @@ bool MaatEngine::process_branch(
                 // Add path constraint
                 if (
                     settings.record_path_constraints 
-                    and not in1.is_concrete(*vars)
+                    && ! in1.is_concrete(*vars)
                 )
                 {
                     path->add(in1 != 0);
@@ -674,16 +676,16 @@ bool MaatEngine::process_branch(
                 // Add path constraint
                 if (
                     settings.record_path_constraints
-                    and not in1.is_concrete(*vars)
+                    && ! in1.is_concrete(*vars)
                 )
                 {
                     path->add(in1 == 0);
                 }
             }
             if (
-                hooks.has_hooks(Event::BRANCH, When::AFTER) or
+                hooks.has_hooks(Event::BRANCH, When::AFTER) ||
                 (
-                 (not in1.is_concrete(*vars)) and
+                 (! in1.is_concrete(*vars)) &&
                   hooks.has_hooks(Event::PATH, When::AFTER)
                 )
             )
@@ -725,16 +727,16 @@ bool MaatEngine::resolve_addr_param(
 
     if (
         addr.is_concrete(*vars)
-        or (
-            addr.is_concolic(*vars) and
-            not settings.symptr_read
+        || (
+            addr.is_concolic(*vars) &&
+            ! settings.symptr_read
         )
     )
     {
         do_abstract_load = false;
         addr_param.auxilliary = addr.as_number(*vars);
     }
-    else if (addr.is_symbolic(*vars) and not settings.symptr_read)
+    else if (addr.is_symbolic(*vars) && ! settings.symptr_read)
     {
         info.stop = info::Stop::FATAL;
         log.fatal("MaatEngine::resolve_addr_param(): trying to read from symbolic pointer, but symptr_read option is disabled");
@@ -770,13 +772,21 @@ bool MaatEngine::resolve_addr_param(
                 range = refine_value_set(load_addr);
                 MaatStats::instance().done_refine_symptr_read();
             }
-            mem_engine.symbolic_ptr_read(loaded, load_addr, range, load_size, settings);
+
+            //fist off check address by hash
+            for (auto& write : mem_engine.symbolic_mem_engine.get_writes())
+            {
+                if (write.addr->eq(load_addr))
+                    loaded = write.value;
+            }
+            if(loaded.is_none())
+                mem_engine.symbolic_ptr_read(loaded, load_addr, range, load_size, settings);
         }
         else
         {
             mem_engine.read(loaded, addr_param.auxilliary.as_uint(*vars), load_size);
         }
-        // P-code can load a number of bits that's not a multiple of 8.
+        // P-code can load a number of bits that's ! a multiple of 8.
         // If that's the case, readjust the loaded value size by trimming
         // the extra bits
         if (loaded.size() > param.size())
@@ -817,19 +827,19 @@ bool MaatEngine::resolve_addr_param(
     // to an abstract value because Address parameters are expected 
     // to always trigger abstract processing in the CPU
     addr_param = loaded;
-    return not addr_param.value().is_none();
+    return ! addr_param.value().is_none();
 }
 
 bool MaatEngine::process_addr_params(const ir::Inst& inst, ir::ProcessedInst& pinst)
 {
     // Don't resolve addresses for BRANCH/CBRANCH/CALL operators, they are targets, not
     // real input parameters
-    if (inst.op == ir::Op::BRANCH or inst.op == ir::Op::CBRANCH or inst.op == ir::Op::CALL)
+    if (inst.op == ir::Op::BRANCH || inst.op == ir::Op::CBRANCH || inst.op == ir::Op::CALL)
         return true;
 
     if (
-        (inst.in[0].is_addr() and !resolve_addr_param(inst.in[0], pinst.in0, *mem))
-        or (inst.in[1].is_addr() and !resolve_addr_param(inst.in[1], pinst.in1, *mem))
+        (inst.in[0].is_addr() && !resolve_addr_param(inst.in[0], pinst.in0, *mem))
+        || (inst.in[1].is_addr() && !resolve_addr_param(inst.in[1], pinst.in1, *mem))
     )
     {
         log.error("MaatEngine::process_addr_params(): failed to process IR inst: ", inst);
@@ -841,7 +851,7 @@ bool MaatEngine::process_addr_params(const ir::Inst& inst, ir::ProcessedInst& pi
 
 bool MaatEngine::process_load(const ir::Inst& inst, ir::ProcessedInst& pinst)
 {
-    if (not resolve_addr_param(inst.out, pinst.in1, *mem))
+    if (! resolve_addr_param(inst.out, pinst.in1, *mem))
     {
         log.error("MaatEngine::process_load(): failed to resolve address parameter");
         return false;
@@ -850,7 +860,7 @@ bool MaatEngine::process_load(const ir::Inst& inst, ir::ProcessedInst& pinst)
     const Value& loaded = pinst.in1.value();
 
     // Write load result to processed inst
-    if (pinst.out.is_none() or pinst.out.value().size() == loaded.size())
+    if (pinst.out.is_none() || pinst.out.value().size() == loaded.size())
     {
         pinst.res = loaded;
     }
@@ -877,14 +887,14 @@ bool MaatEngine::process_store(
     Expr abstract_store_addr = nullptr;
     Value to_store = pinst.in2.value();
 
-    // Get address and value to store
-    if (inst.op == ir::Op::STORE or treat_as_pcode_store)
+    // Get address && value to store
+    if (inst.op == ir::Op::STORE || treat_as_pcode_store)
     {
         if (
             addr.is_concrete(*vars)
-            or (
-                addr.is_concolic(*vars) and
-                not settings.symptr_write
+            || (
+                addr.is_concolic(*vars) &&
+                ! settings.symptr_write
             )
         )
         {
@@ -892,19 +902,19 @@ bool MaatEngine::process_store(
             // WARNING: this truncates addresses on more than 64 bits...
             concrete_store_addr = addr.as_number(*vars).get_ucst();
         }
-        else if (addr.is_symbolic(*vars) and not settings.symptr_write)
+        else if (addr.is_symbolic(*vars) && ! settings.symptr_write)
         {
             log.fatal("MaatEngine::process_store(): trying to write at symbolic pointer but symptr_write option is disabled");
             info.stop = info::Stop::FATAL;
             return false;
         }
-        else // symbolic address and symbolic writes enabled
+        else // symbolic address && symbolic writes enabled
         {
             abstract_store_addr = addr.as_expr();
         }
         to_store = pinst.in2.value();
     }
-    else // out parameter is a constant address and operation is an assignment operation
+    else // out parameter is a constant address && operation is an assignment operation
     {
         do_abstract_store = false;
         concrete_store_addr = inst.out.addr();
@@ -974,7 +984,7 @@ bool MaatEngine::process_callother(const ir::Inst& inst, ir::ProcessedInst& pins
         log.error("MaatEngine::process_callother(): called with wrong ir operation (not CALLOTHER)");
         return false;
     }
-    if (not callother_handlers.has_handler(inst.callother_id))
+    if (!callother_handlers.has_handler(inst.callother_id))
     {
         log.error("Instruction can not be emulated (missing CALLOTHER handler)");
         return false;
@@ -1041,7 +1051,7 @@ int _get_distance_till_end_of_map(MemEngine& mem, addr_t addr)
     {
         if (map.contains(addr))
             res = map.end - addr + 1;
-        else if (map.start == tmp_end+1 and res != 0)
+        else if (map.start == tmp_end+1 && res != 0)
             res += map.end - map.start + 1;
         else if (map.start > addr)
             break;
@@ -1061,14 +1071,14 @@ const ir::AsmInst& MaatEngine::get_asm_inst(addr_t addr, unsigned int max_inst)
     try
     {
         // Number of instructions to lift is the max number of instructions
-        // to execute, or 'until end of basic block' (0xffffffff) if
+        // to execute, || 'until end of basic block' (0xffffffff) if
         // max_inst == 0
         unsigned int code_size = (unsigned int)_get_distance_till_end_of_map(*mem, addr);
         unsigned int max_inst_to_lift = max_inst == 0? 0xffffffff : max_inst;
 
         // TODO: check if code region is symbolic
         if (
-            not lifters[_current_cpu_mode]->lift_block(
+            ! lifters[_current_cpu_mode]->lift_block(
                 log,
                 ir_map,
                 addr,
@@ -1141,13 +1151,13 @@ void MaatEngine::restore_snapshot(snapshot_t snapshot, bool remove)
         throw snapshot_exception("MaatEngine::restore_snapshot(): called with invalid snapshot parameter!");
     }
 
-    if (not snapshots->active())
+    if (! snapshots->active())
     {
         throw snapshot_exception("MaatEngine::restore_snapshot(): No more snapshots to restore");
     }
 
     // idx is the index of the oldest snapshot to restore
-    // start by rewinding until 'idx' and delete more recent snapshots 
+    // start by rewinding until 'idx' && delete more recent snapshots 
     while (idx < snapshots->size()-1)
     {
         restore_last_snapshot(true); // remove = true
@@ -1164,7 +1174,7 @@ void MaatEngine::restore_snapshot(snapshot_t snapshot, bool remove)
 void MaatEngine::restore_last_snapshot(bool remove)
 {
     // Check that there are snapshots
-    if (not snapshots->active())
+    if (! snapshots->active())
     {
         throw snapshot_exception("MaatEngine::restore_last_snapshot(): No more snapshots to restore");
     }
@@ -1360,7 +1370,7 @@ ValueSet MaatEngine::refine_value_set(Expr e)
     new_min = min;
 
     // Dichotomy search to find the max
-    // (start from mean or min if already bigger than original mean)
+    // (start from mean || min if already bigger than original mean)
     min = new_min;
     max = e->value_set().max;
     tmp_timeout = settings.symptr_refine_timeout/2;

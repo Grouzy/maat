@@ -166,22 +166,22 @@ public:
     /// Return true if 'addr' is monitored
     bool monitors(addr_t addr) const
     {
-        if (not addr_min)
+        if (!addr_min)
             return false;
         else if (addr_max)
-            return addr >= *addr_min and addr <= *addr_max;
+            return addr >= *addr_min && addr <= *addr_max;
         else
             return addr == *addr_min;
     };
     /// Return true if any address between '_min' and '_max' (both included) is monitored
     bool monitors(addr_t _min, addr_t _max) const
     {
-        if (not addr_min)
+        if (!addr_min)
             return false;
         else if (addr_max)
-            return _max >= *addr_min and _min <= *addr_max;
+            return _max >= *addr_min && _min <= *addr_max;
         else
-            return *addr_min >= _min and *addr_min <= _max;
+            return *addr_min >= _min && *addr_min <= _max;
     };
     /// Return true if the filter monitors at least one address
     bool is_active() const
@@ -367,12 +367,12 @@ private:
         const std::vector<Event>& events,
         When when,
         MaatEngine& engine
-    ) __attribute__((always_inline));
+    );
     inline Action _trigger_hooks(
         Event event,
         When when,
         MaatEngine& engine
-    ) __attribute__((always_inline));
+    );
 public: 
     bool has_hooks(
         const std::vector<Event>& events,

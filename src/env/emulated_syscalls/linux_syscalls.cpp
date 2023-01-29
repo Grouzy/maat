@@ -228,7 +228,7 @@ FunctionCallback::return_t sys_linux_stat(
         filepath = engine.env->fs.path_from_relative_path(filepath, engine.process->pwd);
 
     // Check if file exists
-    if (not engine.env->fs.file_exists(filepath))
+    if (! engine.env->fs.file_exists(filepath))
         return -1; // Error
     // Fill the statbuf struct
     env::physical_file_t file = engine.env->fs.get_file(filepath);
@@ -309,7 +309,7 @@ FunctionCallback::return_t sys_linux_fstatat(
     if (file == nullptr)
     {
         // Check if file exists
-        if (not engine.env->fs.file_exists(filepath))
+        if (! engine.env->fs.file_exists(filepath))
             return -ERR_ENOENT; // Error: No such path or directory
         file = engine.env->fs.get_file(filepath);
     }
@@ -367,13 +367,13 @@ FunctionCallback::return_t sys_linux_mmap(
 
     // If not ANONYMOUS, get the file
     physical_file_t file = nullptr;
-    if (not (flags & MAP_ANONYMOUS))
+    if (! (flags & MAP_ANONYMOUS))
     {
         try
         {
             file = engine.env->fs.get_file_by_handle(fd);
             FileAccessor& fa = engine.env->fs.get_fa_by_handle(fd);
-            if (not fa.filename().empty())
+            if (! fa.filename().empty())
                 map_name = fa.filename(); 
         }
         catch(const env_exception& e)
@@ -412,7 +412,7 @@ FunctionCallback::return_t sys_linux_mmap(
     engine.mem->write_buffer(res, zeros.data(), aligned_length, true);
 
     // Complete with file content
-    if (not (flags & MAP_ANONYMOUS))
+    if (! (flags & MAP_ANONYMOUS))
     {
         // Read the file content as a buffer
         if (offset + length > file->size())
@@ -515,7 +515,7 @@ FunctionCallback::return_t sys_linux_brk(
     else if (addr > end_heap)
     {
         // First check if memory is free for extending
-        if (not engine.mem->is_free(end_heap, addr-1))
+        if (! engine.mem->is_free(end_heap, addr-1))
         {
             return -1; // Memory not free
         }
@@ -542,7 +542,7 @@ FunctionCallback::return_t sys_linux_access(
     // Get file
     env::node_status_t status = engine.env->fs.get_node_status(file);
     // Test if file exists 
-    if (not env::node::check_is_file(status))
+    if (! env::node::check_is_file(status))
         return -1;
     // TODO: check for RWX perms once they are supported in the filesystem
     return 0;
@@ -625,7 +625,7 @@ FunctionCallback::return_t sys_linux_arch_prctl(
         // and the address their entry points to 
         engine.cpu.ctx().set(X64::FS, args[1]);
     }
-    else if (code >= 0x3001 and code <= 0x3006)
+    else if (code >= 0x3001 && code <= 0x3006)
     {
         // CET stuff, not supported but pretend everything went fine
         return 0; // Success
@@ -661,7 +661,7 @@ FunctionCallback::return_t linux_generic_open(MaatEngine& engine, const std::str
     try
     {
         // Check if file exists
-        if (not engine.env->fs.file_exists(filepath))
+        if (! engine.env->fs.file_exists(filepath))
         {
             if (flags & O_CREAT)
                 engine.env->fs.create_file(filepath);
@@ -748,7 +748,7 @@ FunctionCallback::return_t sys_linux_readlink(
     // Get file
     std::string filepath = engine.mem->read_string(path);
     env::node_status_t status = engine.env->fs.get_node_status(filepath);
-    if (not env::node::check_is_symlink(status))
+    if (! env::node::check_is_symlink(status))
     {
         // Not a symbolic link, return error
         engine.log.warning("Emulated readlink(): called on '", filepath, "' which isn't a symbolic link");

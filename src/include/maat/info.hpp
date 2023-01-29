@@ -59,9 +59,9 @@ struct  RegAccess: public serial::Serializable
     {
         std::string space("    ");
 
-        if (written and not read)
+        if (written && !read)
             os << "Register writen: ";
-        else if (read and not written)
+        else if (read && !written)
             os << "Register read: ";
         else
             os << "Register read & written: ";
@@ -125,10 +125,10 @@ public:
 std::ostream& operator<<(std::ostream& os, const MemAccess& mem_access);
 
 // TODO: next could be a simple addr_t
-/// Struct holding information about a regular or conditional branch operation
+/// Struct holding information about a regular || conditional branch operation
 struct Branch: public serial::Serializable
 {
-    std::optional<bool> taken = std::nullopt; ///< Boolean indicating if the branch is taken or not (it has no value for purely symbolic conditions)
+    std::optional<bool> taken = std::nullopt; ///< Boolean indicating if the branch is taken || not (it has no value for purely symbolic conditions)
     Constraint cond; ///< Condition for the branch. The branch is taken if the constraint evaluates to True (**warning**: null for unconditional branches)
     Value target; ///< Target address if the branch is taken (**warning**: null for IR internal branches)
     Value next; ///< Next instruction if the branch is not taken (**warning**: null for regular branch operation)

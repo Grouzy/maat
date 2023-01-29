@@ -8,9 +8,9 @@ namespace event
     
 Action merge_actions(Action a, Action b)
 {
-    if (a == Action::ERROR or b == Action::ERROR)
+    if (a == Action::ERROR || b == Action::ERROR)
         return Action::ERROR;
-    else if (a == Action::HALT or b == Action::HALT)
+    else if (a == Action::HALT || b == Action::HALT)
         return Action::HALT;
     else
         return Action::CONTINUE;
@@ -44,7 +44,7 @@ bool is_mem_event(Event event)
 
 bool is_simple_event(Event event)
 {
-    return !is_reg_event(event) and !is_mem_event(event) and !is_exec_event(event);
+    return !is_reg_event(event) && !is_mem_event(event) && !is_exec_event(event);
 }
 
 bool is_exec_event(Event event)
@@ -137,8 +137,8 @@ EventCallback::~EventCallback()
 bool is_valid_action(int action)
 {
     return  action == (int)Action::CONTINUE
-            or action == (int)Action::HALT
-            or action == (int)Action::ERROR;
+            || action == (int)Action::HALT
+            || action == (int)Action::ERROR;
 }
 
 Action EventCallback::execute(MaatEngine& engine) const
@@ -230,7 +230,7 @@ int EventHook::id()
 
 bool EventHook::check_filter(MaatEngine& engine)
 {
-    if (not filter.is_active())
+    if (! filter.is_active())
         return true; // If filter not set, we monitor all addresses by default!
 
     if (is_mem_event(event))
@@ -255,7 +255,7 @@ Action EventHook::trigger(MaatEngine& engine)
 {
     Action res = Action::CONTINUE;
     // First filter the event
-    if (not check_filter(engine))
+    if (! check_filter(engine))
     {
         return Action::CONTINUE;
     }
@@ -326,7 +326,7 @@ void EventHook::add_callback(EventCallback cb)
 std::ostream& operator<<(std::ostream& os, const EventHook& h)
 {
     os << std::dec << h._id;
-    if (not h.name.empty())
+    if (! h.name.empty())
         os << "/'" << h.name << "'";
     os << ": ";
 
@@ -356,7 +356,7 @@ std::ostream& operator<<(std::ostream& os, const EventHook& h)
 
     if (h.filter.is_active())
     {
-        if (not h.filter.addr_max.has_value())
+        if (! h.filter.addr_max.has_value())
             os << std::hex << " [0x" << *h.filter.addr_min << ']';
         else
             os << std::hex << " [0x" << *h.filter.addr_min << "-0x" << *h.filter.addr_max << "]";
@@ -692,7 +692,7 @@ Action EventManager::before_branch(
     };
     if (cond != nullptr) // engine passes condition only if it is not concrete
         res = _trigger_hooks(Event::PATH, When::BEFORE, engine);
-    if (not target.is_none()) // engine passes target only if real branch (not pcode-relative)
+    if (! target.is_none()) // engine passes target only if real branch (not pcode-relative)
         res = merge_actions(res, _trigger_hooks(Event::BRANCH, When::BEFORE, engine));
     return res;
 }
@@ -714,7 +714,7 @@ Action EventManager::after_branch(
     };
     if (cond != nullptr) // engine passes condition only if it is not concrete
         res = _trigger_hooks(Event::PATH, When::AFTER, engine);
-    if (not target.is_none()) // engine passes target only if real branch (not pcode-relative)
+    if (! target.is_none()) // engine passes target only if real branch (not pcode-relative)
         res = merge_actions(res, _trigger_hooks(Event::BRANCH, When::AFTER, engine));
     return res;
 }
@@ -754,7 +754,7 @@ Action EventManager::_trigger_hooks(Event event, When when, MaatEngine& engine)
     Action res = Action::CONTINUE;
     for (EventManager::hook_t& hook : hook_map[event][when])
     {
-        if (not hook->is_enabled())
+        if (! hook->is_enabled())
             continue;
         Action tmp = hook->trigger(engine);
         if (tmp == Action::ERROR)
@@ -768,14 +768,14 @@ Action EventManager::_trigger_hooks(Event event, When when, MaatEngine& engine)
 bool EventManager::has_hooks(const std::vector<Event>& events, When when)
 {
     for (auto& e : events)
-        if (not hook_map[e][when].empty())
+        if (! hook_map[e][when].empty())
             return true;
     return false;       
 }
 
 bool EventManager::has_hooks(Event event, When when)
 {
-    return not hook_map[event][when].empty();
+    return ! hook_map[event][when].empty();
 }
 
 } // namespace event

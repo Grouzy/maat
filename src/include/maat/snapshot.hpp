@@ -100,7 +100,7 @@ public:
     /// Return a reference to the last added snapshot
     T& back()
     {
-        if (not active())
+        if (! active())
             throw snapshot_exception("SnashotManager::back(): no active snapshot!");
         return _snapshots.back();
     }
@@ -108,7 +108,7 @@ public:
     /// Return true if there is at least one active snapshot
     bool active()
     {
-        return not _snapshots.empty();
+        return ! _snapshots.empty();
     }
     
     /// Return the number of active snapshots

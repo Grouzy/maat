@@ -8,19 +8,19 @@ namespace ir
 
 bool is_assignment_op(const Op& op)
 {
-    return  op != ir::Op::LOAD and
-            op != ir::Op::STORE and
-            op != ir::Op::BRANCH and            
-            op != ir::Op::CBRANCH and           
-            op != ir::Op::BRANCHIND and
-            op != ir::Op::CALL and         
-            op != ir::Op::CALLIND and           
-            op != ir::Op::CALLOTHER and         
-            op != ir::Op::RETURN and
-            op != ir::Op::INDIRECT and     
-            op != ir::Op::CAST and                 
-            op != ir::Op::SEGMENTOP and
-            op != ir::Op::CPOOLREF and
+    return  op != ir::Op::LOAD &&
+            op != ir::Op::STORE &&
+            op != ir::Op::BRANCH &&            
+            op != ir::Op::CBRANCH &&           
+            op != ir::Op::BRANCHIND &&
+            op != ir::Op::CALL &&         
+            op != ir::Op::CALLIND &&           
+            op != ir::Op::CALLOTHER &&         
+            op != ir::Op::RETURN &&
+            op != ir::Op::INDIRECT &&     
+            op != ir::Op::CAST &&                 
+            op != ir::Op::SEGMENTOP &&
+            op != ir::Op::CPOOLREF &&
             op != ir::Op::NEW;
 }
 
@@ -149,11 +149,11 @@ Param& Param::operator=(const Param& other)
 }
 
 bool Param::is_cst() const { return type == Type::CST; }
-bool Param::is_cst(cst_t cst) const { return type == Param::Type::CST and _val == cst; }
+bool Param::is_cst(cst_t cst) const { return type == Param::Type::CST && _val == cst; }
 bool Param::is_reg() const { return type == Type::REG; }
-bool Param::is_reg(reg_t reg) const { return type == Param::Type::REG and _val == reg; }
+bool Param::is_reg(reg_t reg) const { return type == Param::Type::REG && _val == reg; }
 bool Param::is_tmp() const { return type == Type::TMP; }
-bool Param::is_tmp(tmp_t tmp) const { return type == Param::Type::TMP and _val == tmp; }
+bool Param::is_tmp(tmp_t tmp) const { return type == Param::Type::TMP && _val == tmp; }
 bool Param::is_addr() const { return type == Param::Type::ADDR; }
 bool Param::is_none() const { return type == Type::NONE; }
 
@@ -168,14 +168,14 @@ std::ostream& operator<<(std::ostream& os, const Param& param)
 {
     switch(param.type)
     {
-        case Param::Type::CST: os << param.cst(); break;
+    case Param::Type::CST: os << std::hex << param.cst() << std::dec; break;
         case Param::Type::TMP: os << "TMP_" << std::dec << param.tmp(); break;
         case Param::Type::REG: os << "REG_" << std::dec << param.reg(); break;
         case Param::Type::ADDR: os << "@[0x" << std::hex << param.cst() << ":"
                                    << std::dec << param.size() << "]"; break;
         case Param::Type::NONE: os << "_" ; break;
     }
-    if (param.is_reg() or param.is_tmp() or param.is_cst())
+    if (param.is_reg() || param.is_tmp() || param.is_cst())
         os << "[" << param.hb << ":" << param.lb << "]";
     return os;
 }
@@ -246,24 +246,24 @@ Inst::Inst(
 inline bool Inst::_reads_type(Param::Type t, uint64_t v) const
 {
     // TODO: not sure that CALLOTHER belongs here...
-    if( ir::is_assignment_op(op) or op == ir::Op::CALLOTHER)
+    if( ir::is_assignment_op(op) || op == ir::Op::CALLOTHER)
     {
-        return      (in[0]._val == v and in[0].type == t)
-                or  (in[1]._val == v and in[1].type == t);
+        return      (in[0]._val == v && in[0].type == t)
+                ||  (in[1]._val == v && in[1].type == t);
     }
     else if (op == ir::Op::LOAD)
     {
-        return (in[1]._val == v and in[1].type == t);
+        return (in[1]._val == v && in[1].type == t);
     }
     else if (op == ir::Op::STORE)
     {
-        return      (in[1]._val == v and in[1].type == t)
-                or  (in[2]._val == v and in[2].type == t);
+        return      (in[1]._val == v && in[1].type == t)
+                ||  (in[2]._val == v && in[2].type == t);
     }
     else if (ir::is_branch_op(op))
     {
         // Only in[1] for CBRANCH
-        return  (in[1]._val == v and in[1].type == t);
+        return  (in[1]._val == v && in[1].type == t);
     }
     else
     {
@@ -275,13 +275,13 @@ inline bool Inst::_writes_type(Param::Type type, uint64_t v) const
 {
     if (
         ir::is_assignment_op(op)
-        or op == ir::Op::LOAD
-        or op == ir::Op::CALLOTHER
+        || op == ir::Op::LOAD
+        || op == ir::Op::CALLOTHER
     )
     {
-        return out._val == v and out.type == type;
+        return out._val == v && out.type == type;
     }
-    else if (op == ir::Op::STORE or ir::is_branch_op(op))
+    else if (op == ir::Op::STORE || ir::is_branch_op(op))
     {
         return false;
     }
@@ -303,7 +303,7 @@ bool Inst::writes_reg(reg_t reg) const
 
 bool Inst::uses_reg(reg_t reg) const
 {
-    return reads_reg(reg) or writes_reg(reg);
+    return reads_reg(reg) || writes_reg(reg);
 }
 
 bool Inst::reads_tmp(tmp_t tmp) const
@@ -319,7 +319,7 @@ bool Inst::writes_tmp(tmp_t tmp) const
 void Inst::_get_read_types(Param::Type type, Inst::param_list_t& res) const
 {
     // TODO: not sure that CALLOTHER belongs here
-    if( ir::is_assignment_op(op) or op == ir::Op::CALLOTHER)
+    if( ir::is_assignment_op(op) || op == ir::Op::CALLOTHER)
     {
         if(in[0].type == type)
             res.push_back(std::cref(in[0]));
@@ -355,14 +355,14 @@ void Inst::_get_written_types(Param::Type type, Inst::param_list_t& res) const
 {
     if (
         ir::is_assignment_op(op)
-        or op == ir::Op::LOAD
-        or op == ir::Op::CALLOTHER
+        || op == ir::Op::LOAD
+        || op == ir::Op::CALLOTHER
     )
     {
         if(out.type == type)
             res.push_back(std::cref(out));
     }
-    else if (ir::is_branch_op(op) or op == ir::Op::STORE)
+    else if (ir::is_branch_op(op) || op == ir::Op::STORE)
     {
         return;
     }

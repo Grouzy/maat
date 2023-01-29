@@ -49,7 +49,7 @@ int Stack::size() const
 int Stack::_pos_to_idx(int pos) const
 {
     int idx = size()-1-pos;
-    if (idx < 0 or idx >= size())
+    if (idx < 0 || idx >= size())
         throw env_exception("EVM::Stack: requested invalid element posiion");
     return idx;
 }
@@ -148,7 +148,7 @@ void Memory::expand_if_needed(const Value& addr, size_t nb_bytes)
     if (nb_bytes == 0)
         return;
 
-    if (not addr.is_symbolic(*_varctx))
+    if (! addr.is_symbolic(*_varctx))
     {
         if (Number(addr.size(), 0xffffffffffffffff-nb_bytes+1).less_than(
                 addr.as_number(*_varctx)
@@ -232,7 +232,7 @@ Value Storage::read(const Value& addr)
 
         // If write address is concrete and was already seen, don't 
         // take older writes into account
-        if (not prev_addr.is_abstract())
+        if (! prev_addr.is_abstract())
         {
             if (seen_concrete_addresses.count(prev_addr.as_number(*_varctx)) > 0)
                 continue;
@@ -242,9 +242,9 @@ Value Storage::read(const Value& addr)
 
         // If both addresses are concrete and different, skip this one
         if (
-            not prev_addr.is_abstract() and
-            not addr.is_abstract() and
-            not prev_addr.as_number(*_varctx).equal_to(addr.as_number(*_varctx))            
+            ! prev_addr.is_abstract() &&
+            ! addr.is_abstract() &&
+            ! prev_addr.as_number(*_varctx).equal_to(addr.as_number(*_varctx))            
         )
             continue;
 
@@ -257,9 +257,9 @@ Value Storage::read(const Value& addr)
 
 void Storage::write(const Value& addr, const Value& val, const Settings& settings)
 {
-    if (addr.is_symbolic(*_varctx) and not settings.symptr_write)
+    if (addr.is_symbolic(*_varctx) && ! settings.symptr_write)
         throw env_exception("Storage::write(): writing at fully symbolic address but symptr_write is disabled");
-    else if (addr.is_concrete(*_varctx) or not settings.symptr_write)
+    else if (addr.is_concrete(*_varctx) || ! settings.symptr_write)
     {
         // Concrete or concolic without symptr enabled
         Value concrete_addr(addr.as_number(*_varctx));
@@ -362,7 +362,7 @@ std::vector<Value> _data_load_bytes(const std::vector<Value>& data, size_t offse
     len *= 8; // convert len in bits
 
     // Skip the first expressions to reach desired offset
-    for (i = 0; i < data.size() and offset > 0; i++)
+    for (i = 0; i < data.size() && offset > 0; i++)
     {
         const Value& val = data[i];
         if (val.size() > offset)
@@ -385,7 +385,7 @@ std::vector<Value> _data_load_bytes(const std::vector<Value>& data, size_t offse
     }
 
     // Read 32 bytes from next expresions in data
-    for (; len > 0 and i < data.size(); i++)
+    for (; len > 0 && i < data.size(); i++)
     {
         const Value& val = data[i];
         if (val.size() > len)
@@ -471,7 +471,7 @@ Value Transaction::data_load_word(size_t offset) const
         return Value(256, 0);
 
     // Skip the first expressions to reach desired offset
-    for (i = 0; i < data.size() and offset > 0; i++)
+    for (i = 0; i < data.size() && offset > 0; i++)
     {
         const Value& val = data[i];
         if (val.size() > offset)
@@ -488,7 +488,7 @@ Value Transaction::data_load_word(size_t offset) const
     } 
 
     // Read 32 bytes from next expresions in data
-    for (; (res.is_none() or res.size() < 256) and i < data.size(); i++)
+    for (; (res.is_none() || res.size() < 256) && i < data.size(); i++)
     {
         const Value& val = data[i];
         if (res.is_none())
@@ -640,7 +640,7 @@ Value KeccakHelper::apply(VarContext& ctx, const Value& val, uint8_t* raw_bytes)
     if (it != known_hashes.end())
         return it->second;
     
-    if (val.is_concrete(ctx) or (val.is_concolic(ctx) and not allow_symbolic_hashes))
+    if (val.is_concrete(ctx) || (val.is_concolic(ctx) && ! allow_symbolic_hashes))
     {
         res = _do_keccak256(raw_bytes, val.size()/8);
     }
@@ -656,7 +656,7 @@ Value KeccakHelper::apply(VarContext& ctx, const Value& val, uint8_t* raw_bytes)
     }
     else // purely symbolic value
     {
-        if (not allow_symbolic_hashes)
+        if (! allow_symbolic_hashes)
             throw env_exception("KeccakHelper::apply(): got symbolic value but symbolic hashes are disabled");
         res = exprvar(256, ctx.new_name_from(_symbolic_hash_prefix));
     }
@@ -864,7 +864,7 @@ void new_evm_runtime(
 ){
     if (
         old_engine.arch->type != Arch::Type::EVM 
-        or new_engine.arch->type != Arch::Type::EVM
+        || new_engine.arch->type != Arch::Type::EVM
     )
         throw env_exception("new_evm_runtime(): can't be called with an architecture other than EVM");
 

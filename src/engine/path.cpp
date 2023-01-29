@@ -74,7 +74,7 @@ std::unordered_set<Constraint> PathManager::_get_related_constraints(
         changed = false;
         for (const auto& constraint : _constraints)
         {
-            if (not res.count(constraint)) // ignore constraints already added
+            if (!res.count(constraint)) // ignore constraints already added
             {
                 if (constraint->contains_vars(vars))
                 {

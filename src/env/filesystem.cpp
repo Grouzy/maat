@@ -192,7 +192,7 @@ unsigned int PhysicalFile::read_buffer(
     _adjust_read_offset(read_ptr);
 
     // If nothing to read, just return
-    if (read_ptr >= _size or _size < elem_size)
+    if (read_ptr >= _size || _size < elem_size)
     {
         return 0;
     }
@@ -244,7 +244,7 @@ bool PhysicalFile::is_symlink()
 
 const std::string& PhysicalFile::symlink()
 {
-    if (not is_symlink())
+    if (! is_symlink())
         throw env_exception("PhysicalFile::symlink(): File is not a symlink!");
     return _symlink;
 }
@@ -320,7 +320,7 @@ void PhysicalFile::dump(serial::Serializer& s) const
       << snapshots;
     // We support serializing flush stream ONLY if its std::cout
     bool flush_stream_is_stdout = (
-        flush_stream.has_value() and
+        flush_stream.has_value() &&
         flush_stream.value().get().rdbuf() == std::cout.rdbuf()
     );
         s << bits(flush_stream_is_stdout);
@@ -599,11 +599,11 @@ bool Directory::delete_dir(fspath_t path, bool weak)
 }
 
 
-// TODO not really useful since delete is now a erase() or clear()...
+// TODO not really useful since delete is now a erase() || clear()...
 void Directory::delete_self(bool recursive, bool weak)
 {
     fspath_t tmp_path;
-    if (not weak)
+    if (! weak)
     {
         files.clear();
         subdirs.clear();
@@ -614,7 +614,7 @@ void Directory::delete_self(bool recursive, bool weak)
     // Delete files
     for (auto& file : files)
     {
-        if (not file.second->is_deleted())
+        if (! file.second->is_deleted())
         {
             file.second->set_deleted(true);
             /* TODO
@@ -685,7 +685,7 @@ node_status_t Directory::get_node_status(fspath_t path)
 bool Directory::_contains_name(const std::string& name)
 {
     return  files.find(name) != files.end()
-            or subdirs.find(name) != subdirs.end();
+            || subdirs.find(name) != subdirs.end();
 }
 
 void Directory::print(std::ostream& os, const std::string& indent_string) const
@@ -697,7 +697,7 @@ void Directory::print(std::ostream& os, const std::string& indent_string) const
     next_indent = indent_string + " \u2502  ";
     for (
         auto subdir = subdirs.begin();
-        subdir != subdirs.end() and subdir != std::prev(subdirs.end());
+        subdir != subdirs.end() && subdir != std::prev(subdirs.end());
         subdir++
     )
     {
@@ -707,7 +707,7 @@ void Directory::print(std::ostream& os, const std::string& indent_string) const
         subdir->second->print(os, next_indent);
     }
     // Print last subdir
-    if (not subdirs.empty())
+    if (! subdirs.empty())
     {
         auto subdir = subdirs.rbegin();
         if (files.empty())
@@ -727,7 +727,7 @@ void Directory::print(std::ostream& os, const std::string& indent_string) const
     // Then print files in this dir
     for (
         auto file = files.begin();
-        file != files.end() and file != std::prev(files.end());
+        file != files.end() && file != std::prev(files.end());
         file++
     )
     {
@@ -736,7 +736,7 @@ void Directory::print(std::ostream& os, const std::string& indent_string) const
            << " bytes) \n";
     }
     // Print last file
-    if (not files.empty())
+    if (! files.empty())
     {
         os << indent_string << " \u2514" << "\u2500\u2500 "
         << files.rbegin()->first << " (" << std::dec << files.rbegin()->second->size()
@@ -788,7 +788,7 @@ bool FileSystem::create_file(const std::string& path, bool create_path)
 {
     Directory& dir = (path[0] == orphan_file_wildcard) ? orphan_files : root;
 
-    if (not dir.create_file(fspath_from_path(path), create_path))
+    if (! dir.create_file(fspath_from_path(path), create_path))
     {
         return false;
     }
@@ -803,7 +803,7 @@ bool FileSystem::add_real_file(
     const std::string& virtual_file_path,
     bool create_path
 ){
-    if (not create_file(virtual_file_path, create_path))
+    if (! create_file(virtual_file_path, create_path))
         return false;
 
     env::physical_file_t pfile = get_file(virtual_file_path);
@@ -820,7 +820,7 @@ physical_file_t FileSystem::get_file(const std::string& path, bool follow_symlin
 {
     Directory& dir = (path[0] == orphan_file_wildcard) ? orphan_files : root;
     physical_file_t res = dir.get_file(fspath_from_path(path));
-    while (follow_symlink and res != nullptr and res->is_symlink())
+    while (follow_symlink && res != nullptr && res->is_symlink())
     {
         res = get_file(res->symlink());
     }
@@ -843,11 +843,11 @@ bool FileSystem::delete_file(const std::string& path, bool weak)
 {
     Directory& dir = (path[0] == orphan_file_wildcard) ? orphan_files : root;
 
-    if (not dir.delete_file(fspath_from_path(path), weak))
+    if (! dir.delete_file(fspath_from_path(path), weak))
     {
         return false;
     }
-    if (weak and snapshots->active()) // Record deletion only if weak-delete
+    if (weak && snapshots->active()) // Record deletion only if weak-delete
     {
         snapshots->back().add_filesystem_action(path, FileSystemAction::DELETE_FILE);
     }
@@ -866,7 +866,7 @@ bool FileSystem::create_symlink(
             << " already exists" >> Fmt::to_str
         );
 
-    if (not create_file(link, create_path)) // create_file() handles snapshoting
+    if (! create_file(link, create_path)) // create_file() handles snapshoting
         return false;
     physical_file_t file = get_file(link);
     file->_set_symlink(pointed_file);
@@ -875,7 +875,7 @@ bool FileSystem::create_symlink(
 
 bool FileSystem::create_dir(const std::string& path)
 {
-    if (not root.create_dir(fspath_from_path(path)))
+    if (! root.create_dir(fspath_from_path(path)))
     {
         return false;
     }
@@ -893,12 +893,12 @@ directory_t FileSystem::get_dir(const std::string& path)
 
 bool FileSystem::delete_dir(const std::string& path, bool weak)
 {
-    if (not root.delete_dir(fspath_from_path(path), weak))
+    if (! root.delete_dir(fspath_from_path(path), weak))
     {
         return false;
     }
 
-    if (weak and snapshots->active())
+    if (weak && snapshots->active())
     {
         snapshots->back().add_filesystem_action(path, FileSystemAction::DELETE_DIR);
     }

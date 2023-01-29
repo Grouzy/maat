@@ -76,9 +76,9 @@ public:
 
 private:
     // Internal method that handles setting register aliases
-    inline void _set_aliased_reg(ir::reg_t reg, const Value& val) __attribute__((always_inline));
+    inline void _set_aliased_reg(ir::reg_t reg, const Value& val);
     // Internal method to check if a register is an alias
-    inline bool _is_alias(ir::reg_t reg) const __attribute__((always_inline));
+    inline bool _is_alias(ir::reg_t reg) const;
     // Check that new value assignment matches the current size of the register
     // Throws cpu_exception on a wrong assignment size, and std::out_of_range
     // if 'reg_idx' is invalid 
@@ -136,6 +136,7 @@ class CPU: public serial::Serializable
 {
 private:
     CPUContext _cpu_ctx; ///< CPU registers context
+public:
     TmpContext tmp_ctx; ///< Temporary values context
 private:
     ProcessedInst processed_inst; ///< Processed instruction
@@ -150,15 +151,13 @@ private:
     /** \brief Extracts bit field (high_bit and low_bit included) from 'expr'. If
      * the extract extracts the whole expression, then simply returns 'expr'
      * without performing the extract */
-    inline Expr _extract_abstract_if_needed(Expr expr, size_t high_bit, size_t low_bit)
-    __attribute__((always_inline));
+    inline Expr _extract_abstract_if_needed(Expr expr, size_t high_bit, size_t low_bit);
 
 
     /** \brief Extracts bit field (high_bit and low_bit included) from 'val'. 'val' is modified
      * **in place**. 
      * Returns a reference to 'val' */
-    inline Value _extract_value_bits(const Value& val, size_t high_bit, size_t low_bit)
-    __attribute__((always_inline));
+    inline Value _extract_value_bits(const Value& val, size_t high_bit, size_t low_bit);
 
     /** \brief Get value of parameter 'param' (extract bits if needed).
       
@@ -170,7 +169,7 @@ private:
         MaatEngine& engine,
         bool get_full_register = false,
         bool trigger_events = true
-    ) __attribute__((always_inline));
+    );
 
     /** \brief Compute value to be assigned to the output parameter
      * for instruction 'inst' (with bit extract/concat if overwriting 
@@ -179,7 +178,7 @@ private:
         Value& dest,
         const ir::Inst& inst,
         ProcessedInst& pinst
-    ) __attribute__((always_inline));
+    );
 
 public:
     /** \brief Compute the values of the various parameters of the

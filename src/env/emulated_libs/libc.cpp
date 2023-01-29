@@ -227,7 +227,7 @@ Expr _atoi_parse_digits(MaatEngine& engine, addr_t addr)
     { // 11 because nb_digits of MAX_INT is 10
         // Read next char
         c = engine.mem->read(addr++, 1).as_expr();
-        char_was_enginebolic[i] = not c->is_concrete(*engine.vars);
+        char_was_enginebolic[i] = ! c->is_concrete(*engine.vars);
         char_expressions[i] = c;
         if (i == 10){ // Check the eleventh char
             // String is too long? 
@@ -248,7 +248,7 @@ Expr _atoi_parse_digits(MaatEngine& engine, addr_t addr)
         }
         else // Read next integer char
         {
-            if (c->is_concrete(*engine.vars) and c->as_uint() == 0)
+            if (c->is_concrete(*engine.vars) && c->as_uint() == 0)
             {
                 // Concrete '\0'
                 tmp_res[i] = res;
@@ -310,7 +310,7 @@ FunctionCallback::return_t libc_atoi_callback(MaatEngine& engine, const std::vec
 
     // Skip whitespaces
     c = engine.mem->read(str, 1).as_expr();
-    while( c->is_concrete(*engine.vars) and c->as_uint(*engine.vars) != 0)
+    while( c->is_concrete(*engine.vars) && c->as_uint(*engine.vars) != 0)
     {
         if(!isspace((char)(c->as_uint(*engine.vars))))
         {
@@ -400,7 +400,7 @@ FunctionCallback::return_t libc_fopen_callback(MaatEngine& engine, const std::ve
         {
             if(
                 mode.find("w") != std::string::npos
-                or mode.find("a") != std::string::npos
+                || mode.find("a") != std::string::npos
             )
             {
                 // Write, return stdout
@@ -434,7 +434,7 @@ FunctionCallback::return_t libc_fopen_callback(MaatEngine& engine, const std::ve
         std::string full_path = engine.env->fs.path_from_relative_path(filename, engine.process->pwd);
         // Check if file exists
         node_status_t status = engine.env->fs.get_node_status(full_path);
-        if (not env::node::check_is_file(status))
+        if (! env::node::check_is_file(status))
         {
             // fopen failed (NULL)
             engine.log.warning("Emulated fopen(): ", full_path, "doesn't exist or is not a file '");

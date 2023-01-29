@@ -14,6 +14,8 @@ namespace maat
 
 namespace solver
 {
+
+    z3::expr expr_to_z3(z3::context* c, Expr e, size_t extend_to_size = 0);
     
 /** \defgroup solver Solver
  * \brief The Maat's constraint solver interface */
@@ -71,6 +73,7 @@ private:
 public:
     SolverZ3();
     virtual ~SolverZ3();
+    z3::context* context();
     void reset();
     void add(const Constraint& constr);
     void pop();

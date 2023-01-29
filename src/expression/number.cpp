@@ -1,4 +1,5 @@
 #include "maat/number.hpp"
+#include "boost/numeric/conversion/cast.hpp"
 
 namespace maat
 {
@@ -7,23 +8,21 @@ using namespace maat::serial;
 
 // Interpret src as a signed mpz value and puts it in res
 // src must be more than 64 bits, mpz_t is initialized
-void mpz_init_force_signed(mpz_t& res, const Number& src)
+void mpz_init_force_signed(boost::multiprecision::uint512_t& res, const Number& src)
 {
-    if (not src.is_mpz())
+    if (!src.is_mpz())
         throw expression_exception("mpz_force_signed(): shouldn't be called with regular Number!");
     
-    mpz_init(res);
-    int bit = mpz_tstbit(src.mpz_.get_mpz_t(), src.size-1);
+    int bit = boost::multiprecision::bit_test(src.mpz_, src.size-1);
     if (bit == 0)
-        mpz_set(res, src.mpz_.get_mpz_t()); // Unsigned, keep the same value
+        res.assign(src.mpz_); // Unsigned, keep the same value
     else
     {
-        mpz_t tmp;
-        mpz_init(tmp);
-        mpz_setbit(tmp, src.size);
-        mpz_sub(tmp, tmp, src.mpz_.get_mpz_t());
-        mpz_neg(res, tmp);
-        mpz_clear(tmp);
+        boost::multiprecision::uint512_t tmp;
+        boost::multiprecision::bit_set(tmp, src.size);
+        tmp -= src.mpz_;
+        res = tmp;
+        res.backend().negate();
     }
 }
 
@@ -76,22 +75,21 @@ void Number::load(Deserializer& d)
 
 void Number::adjust_mpz()
 {
-    mpz_t tmp;
+    boost::multiprecision::uint512_t tmp;
     if (!is_mpz())
         return;
 
-    mpz_init_set(tmp, mpz_.get_mpz_t());
-    mpz_ = mpz_class(0);
+    tmp = mpz_;
+    mpz_ = boost::multiprecision::uint512_t(0);
 
     // Copy bit by bit
     for (unsigned int i = 0; i < size; i++)
     {
-        if (mpz_tstbit(tmp, i) == 1)
-            mpz_setbit(mpz_.get_mpz_t(), i);
+        if (boost::multiprecision::bit_test(tmp, i) == 1)
+            boost::multiprecision::bit_set(mpz_, i);
         else
-            mpz_clrbit(mpz_.get_mpz_t(), i);
+            boost::multiprecision::bit_unset(mpz_, i);
     }
-    mpz_clear(tmp);
 }
 
 cst_t __number_cst_mask(size_t size)
@@ -150,7 +148,7 @@ void Number::set(cst_t val)
     cst_ = val;
     if (is_mpz())
     {
-        mpz_ = mpz_class((unsigned long int)val);
+        mpz_ = boost::multiprecision::uint512_t(val);
         adjust_mpz();
     }
 }
@@ -164,7 +162,7 @@ cst_t Number::get_cst() const
         cst_t res = 0;
         for (int i = (sizeof(cst_t)*8) -1; i >= 0; i--)
         {
-            res = (res<<1) + mpz_tstbit(mpz_.get_mpz_t(), i);
+            res = (res<<1) + boost::multiprecision::bit_test(mpz_, i);
         }
         return res;
     }
@@ -179,7 +177,7 @@ ucst_t Number::get_ucst() const
         cst_t res = 0;
         for (int i = (sizeof(cst_t)*8) -1; i >= 0; i--)
         {
-            res = (res<<1) + mpz_tstbit(mpz_.get_mpz_t(), i);
+            res = (res<<1) + boost::multiprecision::bit_test(mpz_, i);
         }
         return __number_cst_unsign_trunc(size, res);
     }
@@ -188,15 +186,18 @@ ucst_t Number::get_ucst() const
 /// Set the number to multiprecision value 'val'
 void Number::set_mpz(cst_t val)
 {
-    mpz_ = mpz_class((unsigned long int)val);
+    mpz_ = boost::multiprecision::uint512_t(val);
     adjust_mpz();
 }
 
-void Number::set_mpz(const std::string& val, int base)
+void Number::set_mpz(std::string_view val, int base)
 {
-    if (base < 2 or base > 62)
+    if (base < 2 || base > 62)
         throw expression_exception("Number::set_mpz() needs a base between 2 and 62");
-    mpz_ = mpz_class(val, base);
+
+    std::stringstream ss;
+    ss << std::setbase(base) << val;
+    mpz_ = boost::multiprecision::uint512_t(ss.str());
     adjust_mpz();
 }
 
@@ -207,7 +208,8 @@ void Number::set_neg(const Number& n)
         set_cst(-1 * n.cst_);
     else
     {
-        mpz_ = - n.mpz_;
+        mpz_ = n.mpz_;
+        mpz_.backend().negate();
         adjust_mpz();
     }
 }
@@ -219,7 +221,7 @@ void Number::set_not(const Number& n)
         set_cst(~(ucst_t)(n.cst_));
     else
     {
-        mpz_ = ~ n.mpz_;
+        mpz_ = ~n.mpz_;
         adjust_mpz();
     }
 }
@@ -296,7 +298,7 @@ void Number::set_rem(const Number& n1, const Number& n2)
     }
     else
     {
-        mpz_mod(mpz_.get_mpz_t(), n1.mpz_.get_mpz_t(), n2.mpz_.get_mpz_t());
+        mpz_ = n1.mpz_ % n2.mpz_;
         adjust_mpz();
     }
 }
@@ -310,13 +312,11 @@ void Number::set_srem(const Number& n1, const Number& n2)
     }
     else
     {
-        mpz_t tmp1, tmp2;
+        boost::multiprecision::uint512_t tmp1, tmp2;
         mpz_init_force_signed(tmp1, n1);
         mpz_init_force_signed(tmp2, n2);
-        mpz_tdiv_r(mpz_.get_mpz_t(), tmp1, tmp2);
+        mpz_ = tmp1 % tmp2;
         adjust_mpz();
-        mpz_clear(tmp1);
-        mpz_clear(tmp2);
     }
 }
 
@@ -343,14 +343,11 @@ void Number::set_exp(const Number& n1, const Number& n2)
     }
     else
     {
-        mpz_t mpz_mod;
-        mpz_init_set_ui(mpz_mod, 1);
-        mpz_mul_2exp(mpz_mod, mpz_mod, size);
+        mpz_ = 1;
+        for (auto i = 0; i < n2.mpz_; i++)
+            mpz_ *= n1.mpz_;
 
-        mpz_powm(mpz_.get_mpz_t(), n1.mpz_.get_mpz_t(), n2.mpz_.get_mpz_t(), mpz_mod);
         adjust_mpz();
-
-        mpz_clear(mpz_mod);
     }
 }
 
@@ -368,7 +365,7 @@ void Number::set_shl(const Number& n1, const Number& n2)
     }
     else
     {
-        mpz_mul_2exp(mpz_.get_mpz_t(), n1.mpz_.get_mpz_t(), n2.get_cst());
+        mpz_ = n1.mpz_ << n2.get_cst();
         adjust_mpz();
     }
 }
@@ -387,7 +384,7 @@ void Number::set_shr(const Number& n1, const Number& n2)
     }
     else
     {
-        mpz_fdiv_q_2exp(mpz_.get_mpz_t(), n1.mpz_.get_mpz_t(), n2.get_cst()); // shr is a div by power of two
+        mpz_ = n1.mpz_ >> n2.get_cst();
         adjust_mpz();
     }
 }
@@ -414,23 +411,23 @@ void Number::set_sar(const Number& n1, const Number& n2)
     else
     {
         mpz_ = 0;
-        unsigned int shift = mpz_get_ui(n2.mpz_.get_mpz_t());
-        unsigned int i;
+        uint64_t shift = n2.mpz_.convert_to<uint64_t>();
+        uint64_t i;
         // Copy bits
-        for (i = 0; i < size-shift; i++)
+        for (i = 0; i < size - shift; i++)
         {
-            if (mpz_tstbit(n1.mpz_.get_mpz_t(), i + shift) == 1)
-                mpz_setbit(mpz_.get_mpz_t(), i);
+            if (boost::multiprecision::bit_test(n1.mpz_, i + shift) == 1)
+                boost::multiprecision::bit_set(mpz_, i);
             else
-                mpz_clrbit(mpz_.get_mpz_t(), i);
+                boost::multiprecision::bit_unset(mpz_, i);
         }
         // Set the shifted mask to 0 or 0xffff....
-        if (mpz_tstbit(n1.mpz_.get_mpz_t(), n1.size-1) == 1)
+        if (boost::multiprecision::bit_test(n1.mpz_, n1.size-1) == 1)
             for (i = 0; i < shift; i++)
-                mpz_setbit(mpz_.get_mpz_t(), size-1-i);
+                boost::multiprecision::bit_set(mpz_, size-1-i);
         else 
             for (i = 0; i < shift; i++)
-                mpz_clrbit(mpz_.get_mpz_t(), size-1-i);
+                boost::multiprecision::bit_unset(mpz_, size-1-i);
         // Adjust
         adjust_mpz();
     }
@@ -462,13 +459,11 @@ void Number::set_sdiv(const Number& n1, const Number& n2)
     else
     {
         
-        mpz_t tmp1, tmp2;
+        boost::multiprecision::uint512_t tmp1, tmp2;
         mpz_init_force_signed(tmp1, n1);
         mpz_init_force_signed(tmp2, n2);
-        mpz_tdiv_q(mpz_.get_mpz_t(), tmp1, tmp2);
+        mpz_ = tmp1 / tmp2;
         adjust_mpz();
-        mpz_clear(tmp1);
-        mpz_clear(tmp2);
     }
 }
 
@@ -484,7 +479,7 @@ void Number::set_div(const Number& n1, const Number& n2)
     else
     {
         // TODO: this is signed division, not unsigned ???
-        mpz_fdiv_q(mpz_.get_mpz_t(), n1.mpz_.get_mpz_t(), n2.mpz_.get_mpz_t());
+        mpz_ = n1.mpz_ / n2.mpz_;
         adjust_mpz();
     }
 }
@@ -507,25 +502,25 @@ void Number::set_extract(const Number& n, unsigned int high, unsigned int low)
     }
     else
     {
-        mpz_t tmp;
-        mpz_init_set_ui(tmp, 0); // init tmp mpz
+        boost::multiprecision::uint512_t tmp;
+        tmp.assign(0);
         // Copy bit by bit
         for (unsigned int i = 0; i < tmp_size; i++)
         {
-            if (mpz_tstbit(n.mpz_.get_mpz_t(), i+low) == 1)
-                mpz_setbit(tmp, i);
+            if (boost::multiprecision::bit_test(n.mpz_, i+low) == 1)
+                boost::multiprecision::bit_set(tmp, i);
             else
-                mpz_clrbit(tmp, i);
+                boost::multiprecision::bit_unset(tmp, i);
         }
 
         size = tmp_size;
-        mpz_ = mpz_class(tmp);
-        mpz_clear(tmp); // clear tmp mpz
+        mpz_ = boost::multiprecision::uint512_t(tmp);
+
         // adjust_mpz(); no need to adjust, we set bits manually
         // If result size on 64 bits or less, transform into cst, not mpz 
         if (this->size <= 64)
         {
-            set_cst(mpz_get_ui(mpz_.get_mpz_t()));
+            set_cst(mpz_.convert_to<uint64_t>());
         }
     }
 }
@@ -547,13 +542,13 @@ void Number::set_concat(const Number& n1, const Number& n2)
     else
     {
         // Need to create a tmp mpz in case *this is n1 or n2...
-        mpz_class tmp_mpz(0);
+        boost::multiprecision::uint512_t tmp_mpz(0);
         // Set higher (set then shift)
         if (n1.is_mpz())
             tmp_mpz = n1.mpz_;
         else
-            tmp_mpz = mpz_class((unsigned long int)n1.get_ucst());
-        mpz_mul_2exp(tmp_mpz.get_mpz_t(), tmp_mpz.get_mpz_t(), n2.size); // shift left
+            tmp_mpz = boost::multiprecision::uint512_t(n1.get_ucst());
+        tmp_mpz = tmp_mpz << n2.size;
         // Set lower
         if (n2.is_mpz())
         {
@@ -561,10 +556,8 @@ void Number::set_concat(const Number& n1, const Number& n2)
         }
         else
         {
-            mpz_t t1;
-            mpz_init_set_ui(t1, (ucst_t)n2.get_ucst());
-            mpz_ior(mpz_.get_mpz_t(), tmp_mpz.get_mpz_t(), t1);
-            mpz_clear(t1);
+            boost::multiprecision::uint512_t t1 = n2.get_ucst();
+            mpz_ = tmp_mpz | t1;
         }
         size = tmp_size;
         adjust_mpz();
@@ -586,7 +579,7 @@ void Number::set_popcount(int dest_size, const Number& n)
     {
         for (int i = 0; i < n.size; i++)
         {
-            res += mpz_tstbit(n.mpz_.get_mpz_t(), i);
+            res += boost::multiprecision::bit_test(n.mpz_, i);
         }
     }
 
@@ -610,11 +603,11 @@ void Number::set_zext(int ext_size, const Number& n)
         if (n.is_mpz())
             mpz_ = n.mpz_;
         else
-            mpz_ = (unsigned long int)n.get_ucst();
+            mpz_ = n.get_ucst();
         // Extend higher bits to zero
         for (unsigned int i = n.size; i < ext_size; i++)
         {
-                mpz_clrbit(mpz_.get_mpz_t(), i);
+            boost::multiprecision::bit_unset(mpz_, i);
         }
     }
 }
@@ -637,15 +630,15 @@ void Number::set_sext(int ext_size, const Number& n)
         if (n.is_mpz())
             mpz_ = n.mpz_;
         else
-            mpz_ = (unsigned long int)n.get_ucst();
+            mpz_ = n.get_ucst();
         // Extend higher bits
-        bool hsb_set = mpz_tstbit(mpz_.get_mpz_t(), n.size-1);
+        bool hsb_set = boost::multiprecision::bit_test(mpz_, n.size-1);
         for (unsigned int i = n.size; i < ext_size; i++)
         {
             if (hsb_set)
-                mpz_setbit(mpz_.get_mpz_t(), i);
+                boost::multiprecision::bit_set(mpz_, i);
             else
-                mpz_clrbit(mpz_.get_mpz_t(), i);
+                boost::multiprecision::bit_unset(mpz_, i);
         }
         adjust_mpz();
     }
@@ -661,7 +654,7 @@ void Number::set_mask(int mask_size)
     {
         for (unsigned int i = 0; i < mask_size; i++)
         {
-                mpz_setbit(mpz_.get_mpz_t(), i);
+            boost::multiprecision::bit_set(mpz_, i);
         }
     }
 }
@@ -691,17 +684,17 @@ void Number::set_overwrite(const Number& n1, const Number& n2, int lb)
     else
     {
         // Make copies in case n1 or n2 is a reference to 'this'
-        mpz_class tmp = n1.mpz_;
-        mpz_class tmp2 = n2.is_mpz() ? n2.mpz_ : (unsigned long int)n2.get_ucst();
+        boost::multiprecision::uint512_t tmp = n1.mpz_;
+        boost::multiprecision::uint512_t tmp2 = n2.is_mpz() ? n2.mpz_ : n2.get_ucst();
         for (int i = 0; i < n2.size; i++)
         {
-            if (mpz_tstbit(tmp2.get_mpz_t(), i) == 1)
+            if (boost::multiprecision::bit_test(tmp2, i) == 1)
             {
-                mpz_setbit(tmp.get_mpz_t(), i + lb);
+                boost::multiprecision::bit_set(tmp, i + lb);
             }
             else
             {
-                mpz_clrbit(tmp.get_mpz_t(), i + lb);
+                boost::multiprecision::bit_unset(tmp, i + lb);
             }
         }
         mpz_ = tmp;
@@ -719,13 +712,10 @@ bool Number::sless_than(const Number& other) const
     {
         // mpz_cmp returns a positive value if op1 > op2, 
         // zero if op1 = op2, or a negative value if op1 < op2
-        mpz_t s1, s2;
+        boost::multiprecision::uint512_t s1, s2;
         mpz_init_force_signed(s1, *this);
         mpz_init_force_signed(s2, other);
-        int res = mpz_cmp(s1, s2);
-        mpz_clear(s1);
-        mpz_clear(s2);
-        return res < 0;
+        return boost::multiprecision::isless(s1, s2);
     }
 }
 
@@ -737,7 +727,7 @@ bool Number::slessequal_than(const Number& other) const
     }
     else
     {
-        return sless_than(other) or equal_to(other);
+        return sless_than(other) || equal_to(other);
     }
 }
 
@@ -749,37 +739,7 @@ bool Number::less_than(const Number& other) const
     }
     else
     {   
-        // TODO(boyan): might work with a simple mpz_cmp() if we interpret everything
-        // as unsigned... instead of the if cases below
-        if (mpz_sgn(mpz_.get_mpz_t()) == -1)
-        {
-            // this is a negative number
-            if (mpz_sgn(other.mpz_.get_mpz_t()) == -1)
-            {
-                // both are negative, so the bigger one is also
-                // the bigger one when interpreted as unsigned
-                return mpz_cmp(mpz_.get_mpz_t(), other.mpz_.get_mpz_t()) < 0;
-            }
-            else
-            {
-                // other one is positive so this one will be bigger (MSB == 1)
-                return false;
-            }
-        }
-        else
-        {
-            // this is a positive number
-            if (mpz_sgn(other.mpz_.get_mpz_t()) == -1)
-            {
-                // other is negative and will always be bigger (MSB == 1)
-                return true;
-            }
-            else
-            {
-                // both are positive
-                return mpz_cmp(mpz_.get_mpz_t(), other.mpz_.get_mpz_t()) < 0;
-            }
-        }
+        return mpz_ < other.mpz_;
     }
 }
 
@@ -791,10 +751,9 @@ bool Number::lessequal_than(const Number& other) const
     }
     else
     {   
-        return less_than(other) or equal_to(other);
+        return less_than(other) || equal_to(other);
     }
 }
-
 
 bool Number::equal_to(const Number& other) const
 {
@@ -806,17 +765,16 @@ bool Number::equal_to(const Number& other) const
     {
         // mpz_cmp returns a positive value if op1 > op2, 
         // zero if op1 = op2, or a negative value if op1 < op2
-        return mpz_cmp(mpz_.get_mpz_t(), other.mpz_.get_mpz_t()) == 0;
+        return mpz_.compare(other.mpz_) == 0;
     }
 }
-
 
 bool Number::is_null() const
 {
     if (size <= 64)
         return cst_ == 0;
     else
-        return mpz_cmp_ui(mpz_.get_mpz_t(), 0) == 0;
+        return mpz_.is_zero();
 }
 
 bool Number::is_mpz() const
@@ -837,17 +795,12 @@ void Number::print(std::ostream& os, bool decimal) const
 {
     if (is_mpz())
     {
-        char str[1000];  // Enough to store the string representation
-                        // of a number on 512 bits
-        //mpz_get_str(str, 16,n. mpz_); // Base 16
-        const char* fmt = decimal? __dec_format : __hex_format; 
-        gmp_snprintf(str, sizeof(str), fmt, mpz_.get_mpz_t());
-        if (not decimal)
-            os << "0x";
-        os << std::string(str);
+        if (!decimal)
+            os << std::hex << "0x";
+        os << mpz_;
     }
     else
-        os << std::hex << std::showbase << get_ucst() << std::noshowbase;
+        os << std::showbase << get_ucst() << std::noshowbase;
 }
 
 } // namespace maat

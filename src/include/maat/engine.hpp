@@ -85,6 +85,8 @@ public:
     std::shared_ptr<env::EnvEmulator> env;
     std::shared_ptr<SymbolManager> symbols;
     std::shared_ptr<ProcessInfo> process;
+    ir::Inst last_inst;
+    ir::ProcessedInst last_processed_inst;
 public:
     /** \brief Public field used by the engine to provide relevant contextual 
      * information */

@@ -50,7 +50,7 @@ bool CmdlineArg::is_concrete() const
 
 bool CmdlineArg::is_abstract() const
 {
-    return not is_concrete();
+    return ! is_concrete();
 }
 
 

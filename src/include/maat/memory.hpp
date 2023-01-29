@@ -420,6 +420,9 @@ public:
     /// Return true if the memory area contains a recorded symbolic write
     bool contains_symbolic_write(addr_t start, addr_t end);
 
+    /// Return all the writes that were recorded by memory engine
+    const std::vector<SymbolicMemWrite>& get_writes();
+
     symbolic_mem_snapshot_t take_snapshot();
     void restore_snapshot(symbolic_mem_snapshot_t id);
 public:
@@ -506,11 +509,14 @@ public:
     std::list<std::shared_ptr<MemSegment>>& segments();
     std::shared_ptr<MemSegment> get_segment_containing(addr_t addr);
     std::shared_ptr<MemSegment> get_segment_by_name(const std::string& name);
+
+    std::tuple<bool, const MemMap&> get_mapping_containing(addr_t addr);
+
     /// Return 'true' if nothing is mapped between 'start' and 'end'
     bool is_free(addr_t start, addr_t end);
 protected:
     /// Return 'true' if there is a MemSegment that overlaps with [start:end]
-    bool has_segment_containing(addr_t start, addr_t end);
+    std::tuple<bool, std::shared_ptr<MemSegment>> has_segment_containing(addr_t start, addr_t end);
 
 // Main read/Write interface for the core engine operations (most performant functions)
 public:

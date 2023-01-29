@@ -43,7 +43,7 @@ Lifter::Lifter(CPUMode m): mode(m)
             throw lifter_exception("Lifter: this CPU mode is not supported");
         }
 
-        if (not (slafile and pspecfile))
+        if (!(slafile && pspecfile))
         {
             throw lifter_exception("Lifter: didn't find sleigh files for this CPU");
         }

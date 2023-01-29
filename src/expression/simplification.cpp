@@ -53,7 +53,7 @@ Expr ExprSimplifier::simplify(Expr e, bool mark_as_simplified)
     Expr prev_expr;
     Expr prev_arg;
 
-    // Check if already simplified or if simple constant
+    // Check if already simplified || if simple constant
     if( e->already_simplified_by(_id) || e->is_type(ExprType::CST))
     {
         return e;
@@ -64,6 +64,7 @@ Expr ExprSimplifier::simplify(Expr e, bool mark_as_simplified)
     }
 
     // Simplify util fix point is found
+    uint16_t max_depth = 30; // arbitrary
     do
     {
         prev_expr = tmp_expr;
@@ -84,10 +85,10 @@ Expr ExprSimplifier::simplify(Expr e, bool mark_as_simplified)
             tmp_expr->_hashed = false;
             tmp_expr->_taint = Taint::NOT_COMPUTED; 
             // Re-apply simplifications
-            prev_expr = tmp_expr;
+            //prev_expr = tmp_expr;
             tmp_expr = run_simplifiers(tmp_expr);
         }
-    } while (prev_expr->neq(tmp_expr));
+    } while (prev_expr->neq(tmp_expr) && max_depth--);
 
     if (mark_as_simplified)
     {
@@ -213,7 +214,7 @@ Expr es_neutral_elements(Expr e)
         // X / 1
         if( (e->op()== Op::DIV || e->op() == Op::SDIV) && e->args[1]->cst() == 1 )
             return e->args[0];
-        // X << 0 or X >> 0
+        // X << 0 || X >> 0
         else if( (e->op() == Op::SHL || e->op() == Op::SHR || e->op() == Op::SAR) && e->args[1]->cst() == 0 )
             return e->args[0];
     }
@@ -242,7 +243,7 @@ Expr es_absorbing_elements(Expr e)
         else if( (e->op() == Op::OR)
                  && cst_sign_trunc(e->size, e->args[0]->cst()) == cst_mask(e->size))
             return e->args[0];
-        // X << sizeof(X) or X >> sizeof(X)
+        // X << sizeof(X) || X >> sizeof(X)
     }
     else if( (e->op() == Op::SHL || e->op() == Op::SHR) && e->args[1]->is_type(ExprType::CST) &&
             (e->args[1]->cst() >= (cst_t)e->size))
@@ -755,7 +756,7 @@ Expr es_basic_ite(Expr e)
         return e;
     }
 
-    // condition is X == X or X <= X
+    // condition is X == X || X <= X
     if( e->cond_left()->eq(e->cond_right()))
     {
         switch( e->cond_op() ){
@@ -795,9 +796,9 @@ Expr es_ite_patterns(Expr e)
     Expr e_cst = nullptr, e_ite = nullptr;
     if (
         e->cond_op() == ITECond::EQ
-        and e->cond_right()->is_type(ExprType::ITE)
-        and e->cond_right()->if_true()->is_type(ExprType::CST)
-        and e->cond_right()->if_false()->is_type(ExprType::CST)
+        && e->cond_right()->is_type(ExprType::ITE)
+        && e->cond_right()->if_true()->is_type(ExprType::CST)
+        && e->cond_right()->if_false()->is_type(ExprType::CST)
     )
     {
         e_cst = e->cond_left();
@@ -805,20 +806,20 @@ Expr es_ite_patterns(Expr e)
     }
     else if (
         e->cond_op() == ITECond::EQ
-        and e->cond_left()->is_type(ExprType::ITE)
-        and e->cond_left()->if_true()->is_type(ExprType::CST)
-        and e->cond_left()->if_false()->is_type(ExprType::CST)
+        && e->cond_left()->is_type(ExprType::ITE)
+        && e->cond_left()->if_true()->is_type(ExprType::CST)
+        && e->cond_left()->if_false()->is_type(ExprType::CST)
     )
     {
         e_ite = e->cond_left();
         e_cst = e->cond_right();
     }
-    if (e_cst != nullptr and e_ite != nullptr)
+    if (e_cst != nullptr && e_ite != nullptr)
     {
         // ITE[M==ITE[X](N,M)](A,B) --> ITE[X](B, A)
         if (
-            not e_cst->eq(e_ite->if_true())
-            and e_cst->eq(e_ite->if_false())
+            ! e_cst->eq(e_ite->if_true())
+            && e_cst->eq(e_ite->if_false())
         ){
             return ITE(
                 e_ite->cond_left(), e_ite->cond_op(), e_ite->cond_right(),
@@ -829,7 +830,7 @@ Expr es_ite_patterns(Expr e)
         // ITE[M==ITE[X](M,N)](A,B) --> ITE[X](A, B)
         else if (
             e_cst->eq(e_ite->if_true())
-            and not e_cst->eq(e_ite->if_false())
+            && !e_cst->eq(e_ite->if_false())
         ){
             return ITE(
                 e_ite->cond_left(), e_ite->cond_op(), e_ite->cond_right(),

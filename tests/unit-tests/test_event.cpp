@@ -236,7 +236,7 @@ ir::get_ir_map(engine.mem->uid()).add(asm_inst);
 
         auto callback3 = [](MaatEngine& engine, void* data)
         {
-            _assert(engine.info.addr == 0x200 or engine.info.addr == 0x202, "MaatEngine: event hook failed");
+            _assert(engine.info.addr == 0x200 || engine.info.addr == 0x202, "MaatEngine: event hook failed");
             if (engine.info.addr == 0x200)
             {
                 _assert(engine.cpu.ctx().get(2).as_uint() == 0xf2, "MaatEngine: event hook failed");
@@ -465,7 +465,7 @@ ir::get_ir_map(engine.mem->uid()).add(asm_inst);
         auto callback2 = [](MaatEngine& engine, void* data)
         {
             _assert(*engine.info.addr == 0x401, "MaatEngine: event hook failed");
-            _assert(not engine.info.branch->taken.has_value(), "MaatEngine: event hook failed");
+            _assert(! engine.info.branch->taken.has_value(), "MaatEngine: event hook failed");
             _assert(engine.info.branch->target.as_uint() == 0xaaaabbbb, "MaatEngine: event hook failed");
             _assert(engine.info.branch->next.as_uint() == 0x402, "MaatEngine: event hook failed");
             _assert(engine.info.branch->cond != nullptr , "MaatEngine: event hook failed");

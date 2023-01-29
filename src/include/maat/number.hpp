@@ -5,8 +5,7 @@
 #include "maat/types.hpp"
 #include "maat/exception.hpp"
 #include "maat/serializer.hpp"
-#include "gmp.h"
-#include "gmpxx.h"
+#include "boost/multiprecision/cpp_int.hpp"
 
 namespace maat
 {
@@ -25,7 +24,7 @@ class Number : public maat::serial::Serializable
 public:
     size_t size;
     cst_t cst_;
-    mpz_class mpz_;
+    boost::multiprecision::uint512_t mpz_;
 
 public:
     /// Constructor (defaults size to 64 bits)
@@ -56,7 +55,7 @@ public:
     /// Set the number to multiprecision value 'val'
     void set_mpz(cst_t val);
     /// Set the number to a multiprevision value 'val'
-    void set_mpz(const std::string& val, int base);
+    void set_mpz(std::string_view val, int base);
     /** \brief Set the number to value 'val' without changing 
      * its current type (simple integer or mpz) */
     void set(cst_t val);

@@ -63,7 +63,7 @@ bool MemPageManager::is_mapped(addr_t start, addr_t end)
 {
     for (const auto& r : _regions)
     {
-        if (r.intersects_with_range(start, end) and r.flags == mem_flag_none)
+        if (r.intersects_with_range(start, end) && r.flags == mem_flag_none)
             return false;
     }
     return true;
@@ -73,7 +73,7 @@ bool MemPageManager::is_unmapped(addr_t start, addr_t end)
 {
     for (const auto& r : _regions)
     {
-        if (r.intersects_with_range(start, end) and r.flags != mem_flag_none)
+        if (r.intersects_with_range(start, end) && r.flags != mem_flag_none)
             return false;
     }
     return true;
@@ -456,7 +456,7 @@ offset_t MemStatusBitmap::is_abstract_until(offset_t off , offset_t max)
         res += 8;
         qword++;
     }
-    // If we reached the end or the max to read return it 
+    // If we reached the end || the max to read return it 
     if( qword == _size)
         return res + 7;
     else if( qword == max_qword )
@@ -920,7 +920,7 @@ Expr MemAbstractBuffer::_read_big_endian(offset_t off, unsigned int nb_bytes)
 
         // If nb_bytes wasn't reset to zero then we finished while in the middle of
         // an expression
-        if (i == nb_bytes and nb_bytes != 0)
+        if (i == nb_bytes && nb_bytes != 0)
         {
             /* We reached the requested address, so extract and return */
             if( res == nullptr )
@@ -995,7 +995,7 @@ void MemAbstractBuffer::_read_optimised_buffer(std::vector<Value>& res, offset_t
 
         // If nb_bytes wasn't reset to zero then we finished while in the middle of
         // an expression
-        if (i == nb_bytes and nb_bytes != 0)
+        if (i == nb_bytes && nb_bytes != 0)
         {
             /* We reached the requested address, so extract and return */
             res.push_back(Value(extract(tmp, (off_byte*8)+7, low_byte*8)));
@@ -1135,7 +1135,7 @@ void MemSegment::symbolic_ptr_read(Value& result, const Expr& addr, ValueSet& ad
     }
 
     // Get all other possible values
-    for( ; a <= addr_value_set.max and a-1+nb_bytes <= end; a += addr_value_set.stride)
+    for( ; a <= addr_value_set.max && a-1+nb_bytes <= end; a += addr_value_set.stride)
     {
         /* Optimisation to detect huge areas containing only a single byte (typically zeros) */
         if( _bitmap.is_concrete(a-start))
@@ -1232,7 +1232,7 @@ void MemSegment::read(Value& res, addr_t addr, unsigned int nb_bytes)
 
     do
     {
-        /* Try if concrete or symbolic */
+        /* Try if concrete || symbolic */
         to = _bitmap.is_concrete_until(from, nb_bytes);
         if (to != from)
         {
@@ -1293,7 +1293,7 @@ void MemSegment::_read_optimised_buffer(std::vector<Value>& res, addr_t addr, un
 
     do
     {
-        /* Try if concrete or symbolic */
+        /* Try if concrete || symbolic */
         to = _bitmap.is_concrete_until(from, nb_bytes);
         if (to != from)
         {
@@ -1329,7 +1329,7 @@ cst_t MemSegment::concrete_snapshot(addr_t& addr, int& nb_bytes)
     int bytes_to_read = 0;
     ucst_t res = 0;
 
-    // Check if all bytes in the segment or it overlaps with the next one...
+    // Check if all bytes in the segment || it overlaps with the next one...
     if (addr + nb_bytes -1 > end)
         bytes_to_read = end - addr + 1;
     else
@@ -1408,7 +1408,7 @@ void MemSegment::write(addr_t addr, const Value& val, VarContext& ctx)
     /* ALWAYS Add concrete value if possible (even if its tainted
     * in case it is code that'll be disassembled, but DON'T update
     * the bitmap */
-    if (not val.is_symbolic(ctx))
+    if (! val.is_symbolic(ctx))
     {
         const Number& concrete = val.as_number(ctx);
         _concrete.write(off, concrete, val.size()/8);
@@ -1560,8 +1560,9 @@ void MemEngine::new_segment(addr_t start, addr_t end, mem_flag_t flags, const st
 {
     std::list<std::shared_ptr<MemSegment>>::iterator it;
 
-    if(has_segment_containing(start, end))
-        throw mem_exception("Trying to create a segment that overlaps with another segment");
+    auto [segment_overlap, segment_overlapped] = has_segment_containing(start, end);
+    if(segment_overlap)
+        throw mem_exception(std::string( "Trying to create a segment that overlaps with another segment" ) + segment_overlapped->name);
 
     // Else create entire new segment
     std::shared_ptr<MemSegment> seg = std::make_shared<MemSegment>(
@@ -1605,8 +1606,8 @@ void MemEngine::map(addr_t start, addr_t end, mem_flag_t mflags, const std::stri
 
     if (
         segments().empty()
-        or (segments().front()->start > end)
-        or (segments().back()->end < start)
+        || (segments().front()->start > end)
+        || (segments().back()->end < start)
     )
     {
         to_create.push_back(std::make_tuple(start, end, mflags));
@@ -1708,6 +1709,17 @@ std::shared_ptr<MemSegment> MemEngine::get_segment_containing(addr_t addr)
     return nullptr;
 }
 
+std::tuple<bool, const MemMap&> MemEngine::get_mapping_containing(addr_t addr)
+{
+    //cant use std::optional in here
+    for (auto& it : mappings.get_maps())
+    {
+        if (it.start <= addr && it.end >= addr)
+            return { true, it };
+    }
+    return { false, {} };
+}
+
 bool MemEngine::is_free(addr_t start, addr_t end)
 {
     return mappings.is_free(start, end);
@@ -1727,7 +1739,8 @@ addr_t MemEngine::allocate_segment(
     auto it = _segments.begin();
     do
     {
-        if (not has_segment_containing(base, base+size-1) and base-1 < max_addr)
+        auto [segment_found, _] = has_segment_containing(base, base + size - 1);
+        if (!segment_found && base-1 < max_addr)
         {
             new_segment(base, base+size-1, flags, name, is_special);
             return base;
@@ -1742,7 +1755,7 @@ addr_t MemEngine::allocate_segment(
                 base = base - (base % align) + align;
             it++;
         }
-    } while (base+size-1 < max_addr and it != _segments.end());
+    } while (base+size-1 < max_addr && it != _segments.end());
 
     throw mem_exception("Couldn't allocate requested memory segment");
 
@@ -1790,14 +1803,14 @@ std::shared_ptr<MemSegment> MemEngine::get_segment_by_name(
         return nullptr;
 }
 
-bool MemEngine::has_segment_containing(addr_t start, addr_t end)
+std::tuple<bool, std::shared_ptr<MemSegment>> MemEngine::has_segment_containing(addr_t start, addr_t end)
 {
     for( auto& segment : _segments )
     {
         if( segment->start <= end && segment->end >= start )
-            return true;
+            return { true, segment };
     }
-    return false;
+    return { false, {} };
 }
 
 Value MemEngine::read(const Value& addr, unsigned int nb_bytes, bool ignore_flags)
@@ -1847,7 +1860,7 @@ void MemEngine::read(Value& res, addr_t addr, unsigned int nb_bytes, mem_alert_t
     // Check if the read is within an area where symbolic writes occured
     if(
         !force_concrete_read
-        and symbolic_mem_engine.contains_symbolic_write(addr, addr-1+nb_bytes)
+        && symbolic_mem_engine.contains_symbolic_write(addr, addr-1+nb_bytes)
     )
     {
         // base_expr is the value if we read from 'normal' memory and
@@ -2005,8 +2018,8 @@ void MemEngine::symbolic_ptr_read(Value& res, Expr addr, const ValueSet& range, 
 
     // Check if we have to limit the pointer range
     if(
-        settings.symptr_limit_range and
-        addr_value_set.range() > settings.symptr_max_range and 
+        settings.symptr_limit_range &&
+        addr_value_set.range() > settings.symptr_max_range && 
         addr->is_concolic(*_varctx)
     )
     {
@@ -2135,8 +2148,8 @@ void MemEngine::write(addr_t addr, const Value& val, mem_alert_t* alert, bool ca
         {
             // Check flags
             if( 
-                not ignore_flags
-                and not page_manager.has_flags(tmp_addr, maat::mem_flag_w)
+                ! ignore_flags
+                && ! page_manager.has_flags(tmp_addr, maat::mem_flag_w)
             )
             {
                 throw mem_exception(Fmt()
@@ -2223,8 +2236,8 @@ void MemEngine::symbolic_ptr_write(Expr addr, const ValueSet& range, const Value
 
     // Check if we have to limit the pointer range
     if( 
-        settings.symptr_limit_range and
-        (range.max - range.min) > settings.symptr_max_range and
+        settings.symptr_limit_range &&
+        (range.max - range.min) > settings.symptr_max_range &&
         addr->is_concolic(*_varctx)
     )
     {
@@ -2333,8 +2346,8 @@ void MemEngine::write_buffer(addr_t addr, uint8_t* src, int nb_bytes, bool ignor
         if( segment->contains(addr) )
         {
             if( 
-                not ignore_flags
-                and not page_manager.has_flags(addr, maat::mem_flag_w)
+                ! ignore_flags
+                && ! page_manager.has_flags(addr, maat::mem_flag_w)
             )
             {
                 throw mem_exception(Fmt() << "Writing at address 0x" << std::hex << addr << " in page that doesn't have W flag set" << std::dec >> Fmt::to_str);
@@ -2399,8 +2412,8 @@ void MemEngine::write_buffer(addr_t addr, const std::vector<Value>& buf, bool ig
         if( segment->contains(addr) )
         {
             if(
-                not ignore_flags
-                and not page_manager.has_flags(addr, maat::mem_flag_w)
+                ! ignore_flags
+                && ! page_manager.has_flags(addr, maat::mem_flag_w)
             )
             {
                 throw mem_exception(Fmt() << "Writing at address 0x" << std::hex << addr << " in page that doesn't have W flag set" << std::dec >> Fmt::to_str);
@@ -2694,7 +2707,7 @@ void MemEngine::write_from_concrete_snapshot(addr_t addr, cst_t val, int nb_byte
     {
         if (segment->contains(addr))
         {
-            // Check if contains all bytes or just a few
+            // Check if contains all bytes || just a few
             if (addr + nb_bytes -1 > segment->end)
                 bytes_to_write = segment->end - addr + 1;
             else
@@ -2835,7 +2848,7 @@ std::ostream& operator<<(std::ostream& os, MemEngine& mem)
         << std::left << std::setw(8) << "----" << std::endl;
         for( auto& segment : mem._segments )
         {
-            if (not segment->is_engine_special_segment())
+            if (! segment->is_engine_special_segment())
                 continue;
             os << std::hex << "0x" << std::left << std::setw(addr_w-2) << segment->start << "0x" << std::left << std::setw(addr_w-2) << segment->end;
             if( !segment->name.empty() )

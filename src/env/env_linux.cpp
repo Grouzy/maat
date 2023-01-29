@@ -42,16 +42,16 @@ void LinuxEmulator::add_running_process(const ProcessInfo& pinfo, const std::str
     fs.create_symlink("/proc/self/exe", pinfo.binary_path, true);
 
     // Create stdin,stdout,stderr, for this process
-    std::string stdin = fs.get_stdin_for_pid(pinfo.pid);
-    std::string stdout = fs.get_stdout_for_pid(pinfo.pid);
-    std::string stderr = fs.get_stderr_for_pid(pinfo.pid);
+    std::string _stdin = fs.get_stdin_for_pid(pinfo.pid);
+    std::string _stdout = fs.get_stdout_for_pid(pinfo.pid);
+    std::string _stderr = fs.get_stderr_for_pid(pinfo.pid);
 
-    fs.create_file(stdin);
-    fs.create_file(stdout);
-    fs.create_file(stderr);
-    fs._new_fa(stdin, 0);
-    fs._new_fa(stdout, 1);
-    fs._new_fa(stderr, 2);
+    fs.create_file(_stdin);
+    fs.create_file(_stdout);
+    fs.create_file(_stderr);
+    fs._new_fa(_stdin, 0);
+    fs._new_fa(_stdout, 1);
+    fs._new_fa(_stderr, 2);
     fs.get_file_by_handle(1)->flush_stream = std::ref(std::cout);
     fs.get_file_by_handle(2)->flush_stream = std::ref(std::cerr);
 }

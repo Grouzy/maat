@@ -117,7 +117,7 @@ struct Bounds
 
 bool AsmInst::contains(addr_t start, addr_t end)
 {
-    return  (_addr <= end and (_addr+_raw_size-1) >= start);
+    return  (_addr <= end && (_addr+_raw_size-1) >= start);
 }
 
 std::ostream& operator<<(std::ostream& os, const AsmInst& inst)

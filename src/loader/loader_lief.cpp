@@ -58,7 +58,7 @@ void LoaderLIEF::parse_binary(const std::string& binary, Format type)
     try
     {
         // Check if format is supported
-        if (type == Format::ELF32 or type == Format::ELF64)
+        if (type == Format::ELF32 || type == Format::ELF64)
         {
             _elf = LIEF::ELF::Parser::parse(binary);
             if( _elf == nullptr )
@@ -140,13 +140,13 @@ addr_t LoaderLIEF::find_free_space(MaatEngine*engine, addr_t start, addr_t size)
     }
 
     do{
-        if (base <= max_addr-size and engine->mem->is_free(base, base+size-1))
+        if (base <= max_addr-size && engine->mem->is_free(base, base+size-1))
         {
             ok = true;
             return base;
         }
         base += step;
-    }while ((not ok) and base < max_addr - size);
+    }while ((! ok) && base < max_addr - size);
 
     return 0;
 }

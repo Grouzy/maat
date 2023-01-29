@@ -45,8 +45,8 @@ public:
         using iterator_category = std::input_iterator_tag;
         using difference_type   = std::ptrdiff_t;
         using value_type        = Constraint;
-        using const_pointer     = const Constraint*;  // or also value_type*
-        using const_reference   = const Constraint&;  // or also value_type&
+        using const_pointer     = const Constraint*;  // || also value_type*
+        using const_reference   = const Constraint&;  // || also value_type&
         iterator(Type t, std::vector<Constraint>* c, int idx, std::set<std::string>* v): type(t), m_idx(idx), constraints(c), vars(v) {}
         iterator(const iterator& other) = default;
         iterator& operator=(const iterator& other) = default;
@@ -76,8 +76,8 @@ public:
                 {
                     m_idx++;
                 } while(
-                    m_idx < constraints->size() and
-                    not (*constraints)[m_idx]->contains_vars(*vars)
+                    m_idx < constraints->size() &&
+                    !(*constraints)[m_idx]->contains_vars(*vars)
                 );
             }
             else

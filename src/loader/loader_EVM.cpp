@@ -34,7 +34,7 @@ void LoaderEVM::load(
 
     // If no file was specified, we don't load the bytecode from a file,
     // and assume it is included in the args array !
-    if (not filename.empty())
+    if (! filename.empty())
     {
         // Read file content
         std::ifstream file(filename, std::ios::binary | std::ios::ate);
@@ -43,7 +43,7 @@ void LoaderEVM::load(
         std::vector<char> buffer(size); // ASCII encoded
         file.read(buffer.data(), size);
 
-        if (not file.good())
+        if (! file.good())
         {
             throw env_exception(
                 Fmt() << "Error reading contents of '" << filename << "'"
@@ -102,7 +102,7 @@ void LoaderEVM::load(
         // Execute init bytecode
         engine->run();
         // Check that the transaction returned properly
-        if (not contract->transaction->result.has_value())
+        if (! contract->transaction->result.has_value())
         {
             throw loader_exception("LoaderEVM::load(): init code didn't return any result");
         }

@@ -34,7 +34,7 @@ namespace test{
             const Number& number = var.as_number();
             Number expected(number.size);
             expected.set_mpz(expected_value, base);
-            if (not expected.equal_to(number))
+            if (! expected.equal_to(number))
             {
                 std::stringstream ss;
                 ss << var;

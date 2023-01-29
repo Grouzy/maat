@@ -259,7 +259,7 @@ public:
 
     const std::string& get_asm(uintptr_t addr)
     {
-        if (not contains(addr))
+        if (!contains(addr))
             return missing_str;
         else
             return cache[addr];
@@ -267,7 +267,7 @@ public:
 
     const std::string get_mnemonic(uintptr_t addr)
     {
-        if (not contains(addr))
+        if (!contains(addr))
             return missing_str;
         std::string res = get_asm(addr);
         return res.substr(0, res.find(" "));
@@ -296,11 +296,11 @@ public:
 
     TranslationContext(maat::Arch::Type a, const std::string& slafile, const std::string& pspecfile): arch(a)
     {
-        if (not loadSlaFile(slafile.c_str()))
+        if (!loadSlaFile(slafile.c_str()))
         {
             throw runtime_exception(Fmt() << "Sleigh: failed to load slafile: " << slafile >> Fmt::to_str);
         }
-        if (not pspecfile.empty() and not loadPspecFile(pspecfile.c_str()))
+        if (!pspecfile.empty() && !loadPspecFile(pspecfile.c_str()))
         {
             throw runtime_exception(Fmt() << "Sleigh: failed to load pspecfile: " << pspecfile >> Fmt::to_str);
         }
@@ -470,17 +470,17 @@ public:
                     // Check for branch instruction (basic block terminates)
                     if (bb_terminating)
                     {
-                        // CALL or BRANCH but we ignore CBRANCH because if the
+                        // CALL || BRANCH but we ignore CBRANCH because if the
                         // branch is not taken execution might continue
                         if (
-                            inst.op == maat::ir::Op::CALL or
+                            inst.op == maat::ir::Op::CALL ||
                             inst.op == maat::ir::Op::BRANCH
                         )
                         {
                             if (
-                                (inst.in[0].is_addr() and inst.in[0].addr() != asm_inst.addr())
-                                or inst.in[0].is_tmp() 
-                                or inst.in[0].is_reg()
+                                (inst.in[0].is_addr() && inst.in[0].addr() != asm_inst.addr())
+                                || inst.in[0].is_tmp() 
+                                || inst.in[0].is_reg()
                             )
                             {
                                 end_bb = true;
@@ -488,8 +488,8 @@ public:
                             }
                         }
                         else if (
-                            inst.op == maat::ir::Op::RETURN or
-                            inst.op == maat::ir::Op::BRANCHIND or
+                            inst.op == maat::ir::Op::RETURN ||
+                            inst.op == maat::ir::Op::BRANCHIND ||
                             inst.op == maat::ir::Op::CALLIND
                         )
                         {
@@ -604,7 +604,7 @@ maat::ir::Param translate_pcode_param(TranslationContext* ctx, VarnodeData* v)
             int tmp = ctx->tmp_cache.get_tmp_from_unique(v->offset);
             return std::move(maat::ir::Tmp(tmp, v->size*8));
         }
-        else if (addr_space_name == "ram" or addr_space_name == "code")
+        else if (addr_space_name == "ram" || addr_space_name == "code")
         {
             // just store the address
             // the size of the output var will give the nb of accessed bytes

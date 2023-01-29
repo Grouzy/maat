@@ -74,7 +74,7 @@ namespace test
         
             _dump_and_load(v2, tmp);
             res += _assert(tmp != nullptr, "Serializer: failed to deserialize Value into unique_ptr");
-            res += _assert(not tmp->is_abstract(), "Serializer: failed to dump and load concrete Value");
+            res += _assert(! tmp->is_abstract(), "Serializer: failed to dump and load concrete Value");
             res += _assert(tmp->as_uint(123456), "Serializer: failed to dump and load concrete Value");
         
             return res;

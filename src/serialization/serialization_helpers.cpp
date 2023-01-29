@@ -37,7 +37,7 @@ bool SimpleStateManager::dequeue_state(MaatEngine& engine)
     if (pending_states.empty())
         return false;
 
-    std::string filename = pending_states.front();
+    std::string filename = pending_states.front().string();
     pending_states.pop();
 
     std::ifstream in(filename, std::ios_base::binary);

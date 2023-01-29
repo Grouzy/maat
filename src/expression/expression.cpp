@@ -422,10 +422,8 @@ hash_t ExprCst::hash()
             _hash = exprhash(hash_in, prepare_hash_with_i64(hash_in, _concrete.get_ucst()), size);
         else
         {
-            char _cst_string[500];  // Enough to store the string representation
-                                    // of a number on 512 bits
-            mpz_get_str(_cst_string, 36, _concrete.mpz_.get_mpz_t()); // Base 36 to be quicker
-            _hash = exprhash(hash_in, prepare_hash_with_str(hash_in, _cst_string), size); 
+            // Base 36 to be quicker
+            _hash = exprhash(hash_in, prepare_hash_with_str(hash_in, _concrete.mpz_.str(36)), size);
         }
         _hashed = true;
     }
@@ -788,9 +786,9 @@ ExprBinop::ExprBinop(Op o, Expr left, Expr right): ExprObject(ExprType::BINOP, l
 {
     if(
         left->size != right->size
-        and o != Op::SHR
-        and o != Op::SHL
-        and o != Op::SAR
+        && o != Op::SHR
+        && o != Op::SHL
+        && o != Op::SAR
     )
     {
         throw expression_exception(Fmt() 
@@ -1149,7 +1147,7 @@ void ExprExtract::print(std::ostream& os)
         << args[0]
         << "[" << std::dec
         << args[1]
-        << ":" << std::dec
+        << ":"
         << args[2]
         << "]";
 }
@@ -1817,7 +1815,6 @@ Expr operator-(Expr arg)
 /* Printing operators */ 
 std::ostream& operator<<(std::ostream& os, Expr e)
 {
-    os << std::hex; // Default, print constants in hex
     e->print(os);
     return os;
 }

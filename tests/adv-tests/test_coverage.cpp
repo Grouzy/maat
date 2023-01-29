@@ -188,7 +188,7 @@ namespace code_coverage{
             // map function at address 0x4ed
             std::string file1_path("tests/resources/plaintext_pwd/check.bin");
             std::ifstream file(file1_path, std::ios::binary | std::ios::ate);
-            if (not file.is_open())
+            if (!file.is_open())
             {
                 cout << "Failed to open file " << file1_path;
                 throw test_exception();
