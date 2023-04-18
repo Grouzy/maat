@@ -1,8 +1,8 @@
 #ifndef MAAT_CONFIG_H
 #define MAAT_CONFIG_H
 
-static constexpr char* maat_install_prefix = "@CMAKE_INSTALL_PREFIX@";
-static constexpr char* maat_specfile_dir_prefix = "@maat_INSTALL_DATADIR@/@spec_out_prefix@";
+static const char* maat_install_prefix = "C:/Program Files (x86)/maat";
+static const char* maat_specfile_dir_prefix = "share/maat/processors";
 
 #include <filesystem>
 #include <list>
@@ -51,7 +51,7 @@ private:
         const path_t& dir
     )
     {
-        if (not std::filesystem::is_directory(dir))
+        if (!std::filesystem::is_directory(dir))
         {
             return std::nullopt;
         }
@@ -99,7 +99,7 @@ public:
         // 1. First search in explicit files
         for (const auto& file : explicit_files)
         {
-            if (file.filename() == filename and std::filesystem::exists(file))
+            if (file.filename() == filename && std::filesystem::exists(file))
                 return file;
         }
 

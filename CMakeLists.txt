@@ -109,8 +109,6 @@ endif()
 
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_LIST_DIR}/cmake/modules)
 
-find_package(GMP REQUIRED)
-
 if(maat_USE_EXTERNAL_SLEIGH)
   find_package(sleigh REQUIRED)
 else()
@@ -128,7 +126,6 @@ endif()
 
 target_link_libraries(
   maat_maat
-  PUBLIC GMP::GMP
   PRIVATE sleigh::sla
 )
 
