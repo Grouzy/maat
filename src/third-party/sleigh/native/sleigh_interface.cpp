@@ -80,7 +80,7 @@ public:
     virtual void adjustVma(long adjust) { }
 };
 
-std::string opcode_to_str(OpCode op);
+std::string opcode_to_str(ghidra::OpCode op);
 maat::ir::Op translate_pcode_op(OpCode op)
 {
     switch (op)
@@ -672,7 +672,7 @@ const std::string& sleigh_get_asm(
     return ctx->get_asm(address, bytes);
 }
 
-std::string opcode_to_str(OpCode op)
+std::string opcode_to_str(ghidra::OpCode op)
 {
     std::string res;
     switch (op)

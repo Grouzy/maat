@@ -1,3 +1,4 @@
+#ifdef MAAT_HAS_LOADER_BACKEND
 #include "maat/loader.hpp"
 #include "maat/env/env_EVM.hpp"
 #include "maat/engine.hpp"
@@ -128,3 +129,4 @@ void LoaderEVM::load(
 
 } // namespace loader
 } // namespace maat
+#endif

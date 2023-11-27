@@ -1458,6 +1458,7 @@ void MaatEngine::load(
     bool load_interp
 )
 {
+#ifdef MAAT_HAS_LOADER_BACKEND
     if (arch->type == Arch::Type::EVM)
     {
         // Use special loader for EVM
@@ -1465,7 +1466,6 @@ void MaatEngine::load(
     }
     else
     {
-#ifdef MAAT_HAS_LOADER_BACKEND
         // TODO(boyan): pass binary type to new_loader() so that it returns
         // the appropriate loader. i.e LoaderLIEF, LoaderXXXX...
         std::unique_ptr<loader::Loader> l = loader::new_loader();
@@ -1481,10 +1481,10 @@ void MaatEngine::load(
             ignore_libs,
             load_interp
         );
+    }
 #else
         throw runtime_exception("Maat was compiled without a suitable loader backend");
 #endif
-    }
 }
 
 serial::uid_t MaatEngine::class_uid() const

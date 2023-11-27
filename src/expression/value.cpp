@@ -188,7 +188,9 @@ void Value::set_not(const Value& n)
 void Value::set_int2float(const Value& n)
 {
     if (n.is_abstract())
-        __debugbreak();
+    {
+        assert(false);
+    }
     else
     {
         _number.set_cst((double)(n.number().get_cst()));
@@ -328,7 +330,9 @@ void Value::set_sdiv(const Value& n1, const Value& n2)
 void Value::set_flt_mult(const Value& n1, const Value& n2)
 {
     if (n1.is_abstract() || n2.is_abstract())
-        __debugbreak();
+    {
+        assert(false);
+    }
     else
     {
         _number.set_cst((double)n1.number().get_cst() * (double)n2.number().get_cst());
