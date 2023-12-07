@@ -296,6 +296,8 @@ public:
 
     TranslationContext(maat::Arch::Type a, const std::string& slafile, const std::string& pspecfile): arch(a)
     {
+        ghidra::AttributeId::initialize();
+        ghidra::ElementId::initialize();
         if (!loadSlaFile(slafile.c_str()))
         {
             throw runtime_exception(Fmt() << "Sleigh: failed to load slafile: " << slafile >> Fmt::to_str);
