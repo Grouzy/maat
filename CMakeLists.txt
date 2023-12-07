@@ -135,7 +135,7 @@ endif()
 
 target_link_libraries(
   maat_maat
-  PRIVATE sleigh::sla
+  PRIVATE sleigh::sla sleigh::support
 )
 
 if(maat_USE_Z3)

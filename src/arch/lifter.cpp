@@ -4,6 +4,9 @@
 #include <string>
 #include <filesystem>
 
+#include "sleigh/SpecFilePaths.h"
+#include "sleigh/Support.h"
+
 namespace maat
 {
 
@@ -22,20 +25,20 @@ Lifter::Lifter(CPUMode m): mode(m)
     {
         if (mode == CPUMode::X86)
         {
-            slafile = config.find_sleigh_file("x86.sla");
-            pspecfile = config.find_sleigh_file("x86.pspec");
+            slafile = sleigh::FindSpecFile("x86.sla", {sleigh::kSleighSpecBuildDir, sleigh::kSleighFullSpecInstallDir});
+            pspecfile = sleigh::FindSpecFile("x86.pspec", {sleigh::kSleighSpecBuildDir, sleigh::kSleighFullSpecInstallDir});
             arch = Arch::Type::X86;
         }
         else if (mode == CPUMode::X64)
         {
-            slafile = config.find_sleigh_file("x86-64.sla");
-            pspecfile = config.find_sleigh_file("x86-64.pspec");
+            slafile = sleigh::FindSpecFile("x86-64.sla", {sleigh::kSleighSpecBuildDir, sleigh::kSleighFullSpecInstallDir});
+            pspecfile = sleigh::FindSpecFile("x86-64.pspec", {sleigh::kSleighSpecBuildDir, sleigh::kSleighFullSpecInstallDir});
             arch = Arch::Type::X64;
         }
         else if (mode == CPUMode::EVM)
         {
-            slafile = config.find_sleigh_file("EVM.sla");
-            pspecfile = config.find_sleigh_file("EVM.pspec");
+            slafile = sleigh::FindSpecFile("EVM.sla", {sleigh::kSleighSpecBuildDir, sleigh::kSleighFullSpecInstallDir});
+            pspecfile = sleigh::FindSpecFile("EVM.pspec", {sleigh::kSleighSpecBuildDir, sleigh::kSleighFullSpecInstallDir});
             arch = Arch::Type::EVM;
         }
         else
