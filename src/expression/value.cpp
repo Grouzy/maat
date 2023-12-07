@@ -189,11 +189,12 @@ void Value::set_int2float(const Value& n)
 {
     if (n.is_abstract())
     {
-        assert(false);
+        *this = n.as_float();
     }
     else
     {
         _number.set_cst((double)(n.number().get_cst()));
+        type = Value::Type::CONCRETE;
     }
 }
 
