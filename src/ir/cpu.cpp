@@ -588,7 +588,7 @@ void CPU::_compute_res_value(
             dest.set_fmul(in0, in1);
             break;
         case ir::Op::FLOAT_ADD:
-            dest.set_fmul(in0, in1);
+            dest.set_fadd(in0, in1);
             break;
         case ir::Op::FLOAT_NAN:
             dest.set_nan(in0);
