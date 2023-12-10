@@ -1,4 +1,5 @@
 #include "maat/value.hpp"
+#include <cmath>
 
 namespace maat
 {
@@ -185,11 +186,22 @@ void Value::set_not(const Value& n)
     }
 }
 
+void Value::set_nan(const Value& n)
+{
+    if (n.is_abstract())
+        *this = fnan(n.expr());
+    else
+    {
+        _number.set(std::isnan((double)n.number().get_cst()));
+        type = Value::Type::CONCRETE;
+    }
+}
+
 void Value::set_int2float(const Value& n)
 {
     if (n.is_abstract())
     {
-        *this = n.as_float();
+        *this = int2float(n.expr());
     }
     else
     {
@@ -328,15 +340,28 @@ void Value::set_sdiv(const Value& n1, const Value& n2)
     }
 }
 
-void Value::set_flt_mult(const Value& n1, const Value& n2)
+void Value::set_fmul(const Value& n1, const Value& n2)
 {
     if (n1.is_abstract() || n2.is_abstract())
     {
-        assert(false);
+        *this = fmul(n1.as_expr(), n2.as_expr()); 
     }
     else
     {
         _number.set_cst((double)n1.number().get_cst() * (double)n2.number().get_cst());
+        type = Value::Type::CONCRETE;
+    }
+}
+
+void Value::set_fadd(const Value& n1, const Value& n2)
+{
+    if (n1.is_abstract() || n2.is_abstract())
+    {
+        *this = fadd(n1.as_expr(), n2.as_expr()); 
+    }
+    else
+    {
+        _number.set_cst((double)n1.number().get_cst() + (double)n2.number().get_cst());
         type = Value::Type::CONCRETE;
     }
 }
@@ -534,6 +559,22 @@ void Value::set_less_than(const Value& n1, const Value& n2, size_t size)
     }
 }
 
+void Value::set_fless_than(const Value& n1, const Value& n2, size_t size)
+{
+    if (n1.is_abstract() || n2.is_abstract())
+    {
+        *this = ITE(n1.as_expr(), ITECond::LT, n2.as_expr(),
+                    exprcst(size,1),
+                    exprcst(size,0)
+                );
+    }
+    else
+    {
+        _number = Number(size, n1.as_number().fless_than(n2.as_number()) ? 1 : 0 );
+        type = Value::Type::CONCRETE;
+    }
+}
+
 void Value::set_lessequal_than(const Value& n1, const Value& n2, size_t size)
 {
     if (n1.is_abstract() || n2.is_abstract())
@@ -594,6 +635,22 @@ void Value::set_equal_to(const Value& n1, const Value& n2, size_t size)
     else
     {
         _number = Number(size, n1.as_number().equal_to(n2.as_number()) ? 1 : 0 );
+        type = Value::Type::CONCRETE;
+    }
+}
+
+void Value::set_fequal_to(const Value& n1, const Value& n2, size_t size)
+{
+    if (n1.is_abstract() || n2.is_abstract())
+    {
+        *this = ITE(n1.as_expr(), ITECond::EQ, n2.as_expr(),
+                    exprcst(size,1),
+                    exprcst(size,0)
+                );
+    }
+    else
+    {
+        _number = Number(size, n1.as_number().fequal_to(n2.as_number()) ? 1 : 0 );
         type = Value::Type::CONCRETE;
     }
 }

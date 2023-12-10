@@ -214,6 +214,19 @@ void Number::set_neg(const Number& n)
     }
 }
 
+void Number::set_nan(const Number& n)
+{
+    size = n.size;
+    if (n.size <= 64)
+        set_cst(boost::math::isnan((fcst_t)n.cst_));
+    else
+    {
+        // TODO use 128bit float
+        mpz_ = boost::math::isnan(n.mpz_.convert_to<double>());
+        adjust_mpz();
+    }
+}
+
 void Number::set_not(const Number& n)
 {
     size = n.size;
@@ -267,6 +280,20 @@ void Number::set_mul(const Number& n1, const Number& n2)
     if (size <= 64)
     {
         set_cst((ucst_t)n1.cst_ * (ucst_t)n2.cst_);
+    }
+    else
+    {
+        mpz_ = n1.mpz_ * n2.mpz_;
+        adjust_mpz();
+    }
+}
+
+void Number::set_fmul(const Number& n1, const Number& n2)
+{
+    size = n1.size;
+    if (size <= 64)
+    {
+        set_cst((fcst_t)n1.cst_ * (fcst_t)n2.cst_);
     }
     else
     {
@@ -743,6 +770,18 @@ bool Number::less_than(const Number& other) const
     }
 }
 
+bool Number::fless_than(const Number& other) const
+{
+    if (size <= 64)
+    {
+        return (fcst_t)cst_ < (fcst_t)other.cst_;
+    }
+    else
+    {   
+        return mpz_ < other.mpz_;
+    }
+}
+
 bool Number::lessequal_than(const Number& other) const
 {
     if (size <= 64)
@@ -760,6 +799,20 @@ bool Number::equal_to(const Number& other) const
     if (size <= 64)
     {
         return (cst_t)cst_ == (cst_t)other.cst_;
+    }
+    else
+    {
+        // mpz_cmp returns a positive value if op1 > op2, 
+        // zero if op1 = op2, or a negative value if op1 < op2
+        return mpz_.compare(other.mpz_) == 0;
+    }
+}
+
+bool Number::fequal_to(const Number& other) const
+{
+    if (size <= 64)
+    {
+        return (fcst_t)cst_ == (fcst_t)other.cst_;
     }
     else
     {

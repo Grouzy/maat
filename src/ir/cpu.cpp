@@ -585,7 +585,19 @@ void CPU::_compute_res_value(
             dest.set_int2float(in0);
             break;
         case ir::Op::FLOAT_MULT:
-            dest.set_flt_mult(in0, in1);
+            dest.set_fmul(in0, in1);
+            break;
+        case ir::Op::FLOAT_ADD:
+            dest.set_fmul(in0, in1);
+            break;
+        case ir::Op::FLOAT_NAN:
+            dest.set_nan(in0);
+            break;
+        case ir::Op::FLOAT_EQUAL:
+            dest.set_fequal_to(in0, in1, inst.out.size());
+            break;
+        case ir::Op::FLOAT_LESS:
+            dest.set_fless_than(in0, in1, inst.out.size());
             break;
         case ir::Op::STORE:
         case ir::Op::LOAD:

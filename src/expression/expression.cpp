@@ -736,6 +736,12 @@ const Number& ExprUnop::concretize(const VarContext* ctx)
             case Op::NOT:
                 _concrete.set_not(n);
                 break;
+            case Op::INT2FLOAT:
+                _concrete = n;
+                break;
+            case Op::NaN:
+                _concrete.set_nan(n);
+                break;
             default:
                 throw runtime_exception("Missing case in ExprUnop::concretize()");
         }
@@ -981,6 +987,7 @@ const maat::Number& ExprBinop::concretize(const VarContext* ctx)
             case Op::MOD:   _concrete.set_rem(n1, n2); break;
             case Op::SMOD:  _concrete.set_srem(n1, n2); break;
             case Op::AND:   _concrete.set_and(n1, n2); break;
+            case Op::FMUL:  _concrete.set_fmul(n1, n2); break;
             /* TODO, keep or remove that ??
             case Op::MULH:
             {
@@ -1741,6 +1748,16 @@ Expr sdiv(cst_t left, Expr right)
     return exprbinop(Op::SDIV, exprcst(right->size, left), right);
 }
 
+Expr fmul(Expr left, Expr right)
+{
+    return exprbinop(Op::FMUL, left, right);
+}
+
+Expr fadd(Expr left, Expr right)
+{
+    return exprbinop(Op::FADD, left, right);
+}
+
 Expr smod(Expr left, Expr right)
 {
     return exprbinop(Op::SMOD, left, right);
@@ -1801,6 +1818,16 @@ Expr smulh(cst_t left, Expr right)
     return exprbinop(Op::SMULH, exprcst(right->size, left), right);
 }
 
+Expr int2float(Expr arg)
+{
+    return std::make_shared<ExprUnop>(Op::INT2FLOAT, arg);
+}
+
+Expr fnan(Expr arg)
+{
+    return std::make_shared<ExprUnop>(Op::NaN, arg);
+}
+
 // Unary operations
 Expr operator~(Expr arg)
 {
@@ -1824,10 +1851,12 @@ std::string op_to_str(Op op)
     switch(op)
     {
         case Op::ADD: return "+";
+        case Op::FADD: return "+F ";
         case Op::MUL: return "*";
         case Op::MULH: return "*h ";
         case Op::SMULL: return "*lS ";
         case Op::SMULH: return "*hS ";
+        case Op::FMUL: return "*F ";
         case Op::DIV: return "/";
         case Op::SDIV: return "/S ";
         case Op::NEG: return "-";
@@ -1840,6 +1869,7 @@ std::string op_to_str(Op op)
         case Op::NOT: return "~";
         case Op::MOD: return "%";
         case Op::SMOD: return "%S ";
+        case Op::INT2FLOAT: return "int2float";
         default: throw expression_exception("op_to_str(): got unknown operation!");
     }
 }

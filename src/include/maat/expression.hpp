@@ -78,6 +78,8 @@ enum class Op : uint8_t
     SMULH, ///< Signed multiply (higher half)
     DIV, ///< Unsigned divide
     SDIV, ///< Signed divide
+    FMUL, ///< Float multiply 
+    FADD, ///< Float add
     NEG, ///< Unary negation
     AND, ///< Logical AND
     OR, ///< Logical OR
@@ -88,6 +90,8 @@ enum class Op : uint8_t
     MOD, ///< Unsigned modulo
     SMOD, ///< Signed modulo
     NOT, ///< Unary logical NOT
+    INT2FLOAT, ///< Unary integer to float
+    NaN, ///< Unary checking if float is NaN
     NONE
 };
 
@@ -630,6 +634,9 @@ Expr sdiv(Expr left, Expr right); ///< Signed divide two expressions
 Expr sdiv(Expr left, cst_t right); ///< Signed divide two expressions
 Expr sdiv(cst_t left, Expr right); ///< Signed divide two expressions
 
+Expr fmul(Expr left, Expr right);
+Expr fadd(Expr left, Expr right);
+
 Expr smod(Expr val, Expr mod); ///< Signed modulo between two expressions
 Expr smod(Expr val, cst_t mod); ///< Signed modulo between two expressions
 Expr smod(cst_t val, Expr mod); ///< Signed modulo between two expressions
@@ -645,6 +652,9 @@ Expr smull(cst_t left, Expr right); ///< Signed multiply two expressions (lower 
 Expr smulh(Expr left, Expr right); ///< Signed multiply two expressions (higher bits of result)
 Expr smulh(Expr left, cst_t right); ///< Signed multiply two expressions (higher bits of result) 
 Expr smulh(cst_t left, Expr right); ///< Signed multiply two expressions (higher bits of result)
+
+Expr int2float(Expr arg);
+Expr fnan(Expr arg);
 
 Expr operator~(Expr arg); ///< Negate an expression
 Expr operator-(Expr arg); ///< Logical invert an expression

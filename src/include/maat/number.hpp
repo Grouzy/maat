@@ -68,10 +68,12 @@ public:
 public:
     // TODO: doc
     void set_neg(const Number& n);
+    void set_nan(const Number& n);
     void set_not(const Number& n);
     void set_add(const Number& n1, const Number& n2);
     void set_sub(const Number& n1, const Number& n2);
     void set_mul(const Number& n1, const Number& n2);
+    void set_fmul(const Number& n1, const Number& n2);
     void set_xor(const Number& n1, const Number& n2);
     void set_shl(const Number& n1, const Number& n2);
     void set_shr(const Number& n1, const Number& n2);
@@ -97,6 +99,7 @@ public:
 public:
     /// Return true if this number is unsigned less than 'other'
     bool less_than(const Number& other) const;
+    bool fless_than(const Number& other) const;
     /// Return true if this number is unsigned less or equal than 'other'
     bool lessequal_than(const Number& other) const;
     /// Return true if this number is signed less than 'other'
@@ -105,6 +108,7 @@ public:
     bool slessequal_than(const Number& other) const;
     /// Return true if this number is equal to 'other'
     bool equal_to(const Number& other) const;
+    bool fequal_to(const Number& other) const;
 public:
     /// Return true if the number is null
     bool is_null() const;
