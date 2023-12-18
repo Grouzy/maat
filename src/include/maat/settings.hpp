@@ -58,6 +58,7 @@ public:
     // I/O
     /// Log every executed instruction
     bool log_insts;
+    bool log_ir;
     /// Log every executed syscall/function (whose symbol is known to the engine)
     bool log_calls;
 public:

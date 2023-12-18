@@ -89,8 +89,8 @@ void test_loader()
 
 #ifdef MAAT_HAS_LOADER_BACKEND
     total += load_simple_algo_2();
-#endif
     total += load_simple_ethereum_contract();
+#endif
     std::cout   << "\t" << total << "/" << total << green << "\t\tOK" 
                 << def << std::endl;
 }

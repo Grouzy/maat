@@ -322,10 +322,46 @@ info::Stop MaatEngine::run(int max_inst)
             const ir::Inst& inst = asm_inst->instructions()[ir_inst_id];          
             this->last_inst = inst;
 
-            // TODO: add settings.log_ir option
-            // if settings.log_ir:
-            //      log.info("Run IR: ", inst);
-            // std::cout << "DEBUG " << inst << std::endl;
+            if (settings.log_ir) 
+            {
+                std::ostringstream log_str;
+                log_str << "IR: " << inst.op << " : ";
+
+                if (!inst.out.is_none())
+                {
+                    if (inst.out.is_reg())
+                    {
+                        log_str << this->arch->reg_name(inst.out.reg()) << " = ";
+                    }
+                    else
+                    {
+                        log_str << inst.out << " = ";
+                    }
+                }
+                for (int i = 0; i < 3; i++)
+                {
+                    if (inst.in[i].is_none())
+                    {
+                        break;
+                    }
+
+                    if (i)
+                    {
+                        log_str << ", ";
+                    }
+
+                    if (inst.in[i].is_reg())
+                    {
+                        log_str << this->arch->reg_name(inst.in[i].reg());
+                    }
+                    else
+                    {
+                        log_str << inst.in[i];
+                    }
+                }
+
+                log.info(log_str.str());
+            }
 
             // Check for unsupported instruction
             if (inst.op == ir::Op::UNSUPPORTED)
