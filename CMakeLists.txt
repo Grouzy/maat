@@ -89,7 +89,7 @@ target_include_directories(
   "$<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/src/third-party/murmur3>"
 )
 
-target_compile_features(maat_maat PUBLIC cxx_std_17)
+target_compile_features(maat_maat PUBLIC cxx_std_20)
 
 if(maat_PYTHON_PACKAGING)
   set_target_properties(

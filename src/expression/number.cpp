@@ -85,10 +85,14 @@ void Number::adjust_mpz()
     // Copy bit by bit
     for (unsigned int i = 0; i < size; i++)
     {
-        if (boost::multiprecision::bit_test(tmp, i) == 1)
+        if (boost::multiprecision::bit_test(tmp, i))
+        {
             boost::multiprecision::bit_set(mpz_, i);
+        }
         else
+        {
             boost::multiprecision::bit_unset(mpz_, i);
+        }
     }
 }
 
@@ -195,9 +199,44 @@ void Number::set_mpz(std::string_view val, int base)
     if (base < 2 || base > 62)
         throw expression_exception("Number::set_mpz() needs a base between 2 and 62");
 
-    std::stringstream ss;
-    ss << std::setbase(base) << val;
-    mpz_ = boost::multiprecision::uint512_t(ss.str());
+    std::string boost_parsable;
+    switch(base)
+    {
+        using namespace std::string_literals;
+        case 2:
+            {
+                if(val.starts_with("0b"))
+                {
+                    boost_parsable = val;
+                    break;
+                }
+
+                boost_parsable = "0b" + std::string(val);
+                break;
+            }
+        case 16:
+            {
+                if(val.starts_with("0x"))
+                {
+                    boost_parsable = val;
+                    break;
+                }
+
+                boost_parsable = "0x" + std::string(val);
+                break;
+            }
+        case 10:
+            {
+                boost_parsable = val;
+                break;
+            }
+        default:
+            {
+                assert(false);
+            }
+    }
+
+    mpz_ = boost::multiprecision::uint512_t(boost_parsable);
     adjust_mpz();
 }
 
@@ -371,8 +410,10 @@ void Number::set_exp(const Number& n1, const Number& n2)
     else
     {
         mpz_ = 1;
-        for (auto i = 0; i < n2.mpz_; i++)
+        for (boost::multiprecision::uint512_t i = 0; i < n2.mpz_; i++)
+        {
             mpz_ *= n1.mpz_;
+        }
 
         adjust_mpz();
     }
@@ -554,6 +595,10 @@ void Number::set_extract(const Number& n, unsigned int high, unsigned int low)
 
 void Number::set_concat(const Number& n1, const Number& n2)
 {
+    //reset previous writes
+    mpz_ = 0;
+    cst_ = 0;
+
     size_t tmp_size = n1.size + n2.size; // Use tmp size because *this might be n1 or n2
 
     if (tmp_size <= 64)
@@ -568,23 +613,25 @@ void Number::set_concat(const Number& n1, const Number& n2)
     }
     else
     {
-        // Need to create a tmp mpz in case *this is n1 or n2...
-        boost::multiprecision::uint512_t tmp_mpz(0);
         // Set higher (set then shift)
         if (n1.is_mpz())
-            tmp_mpz = n1.mpz_;
-        else
-            tmp_mpz = boost::multiprecision::uint512_t(n1.get_ucst());
-        tmp_mpz = tmp_mpz << n2.size;
-        // Set lower
-        if (n2.is_mpz())
         {
-            mpz_ = tmp_mpz | n2.mpz_;
+            mpz_ = n1.mpz_;
         }
         else
         {
-            boost::multiprecision::uint512_t t1 = n2.get_ucst();
-            mpz_ = tmp_mpz | t1;
+            mpz_ = n1.get_ucst();
+        }
+
+        mpz_ = mpz_ << n2.size;
+        // Set lower
+        if (n2.is_mpz())
+        {
+            mpz_ |= n2.mpz_;
+        }
+        else
+        {
+            mpz_ |= n2.get_ucst();
         }
         size = tmp_size;
         adjust_mpz();
