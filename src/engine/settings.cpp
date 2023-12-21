@@ -18,6 +18,7 @@ Settings::Settings():
     symptr_refine_range(true),
     symptr_refine_timeout(10000), // in milliseconds
     log_insts(false),
+    log_ir(false),
     log_calls(false)
 {}
 
