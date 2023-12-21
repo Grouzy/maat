@@ -595,10 +595,6 @@ void Number::set_extract(const Number& n, unsigned int high, unsigned int low)
 
 void Number::set_concat(const Number& n1, const Number& n2)
 {
-    //reset previous writes
-    mpz_ = 0;
-    cst_ = 0;
-
     size_t tmp_size = n1.size + n2.size; // Use tmp size because *this might be n1 or n2
 
     if (tmp_size <= 64)
@@ -613,26 +609,29 @@ void Number::set_concat(const Number& n1, const Number& n2)
     }
     else
     {
+        boost::multiprecision::uint512_t tmp;
         // Set higher (set then shift)
         if (n1.is_mpz())
         {
-            mpz_ = n1.mpz_;
+            tmp = n1.mpz_;
         }
         else
         {
-            mpz_ = n1.get_ucst();
+            tmp = n1.get_ucst();
         }
 
-        mpz_ = mpz_ << n2.size;
+        tmp <<= n2.size;
         // Set lower
         if (n2.is_mpz())
         {
-            mpz_ |= n2.mpz_;
+            tmp |= n2.mpz_;
         }
         else
         {
-            mpz_ |= n2.get_ucst();
+            tmp |= n2.get_ucst();
         }
+
+        mpz_ = tmp;
         size = tmp_size;
         adjust_mpz();
     }
