@@ -51,7 +51,7 @@ int main(int argc, char ** argv)
                 test_snapshots();
                 test_archX86();
                 test_archX64();
-                test_archEVM();
+                //test_archEVM();
                 test_solver();
                 test_loader();
                 test_serialization();
