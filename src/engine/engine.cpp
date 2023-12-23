@@ -69,6 +69,8 @@ MaatEngine::MaatEngine(Arch::Type _arch, env::OS os): env(nullptr), _uid(++_uid_
         cpu.ctx().set(reg, Number(arch->reg_size(reg), 0));
     // Initialize some variables for execution statefullness
     _previous_halt_before_exec = -1;
+    _halt_after_inst = false;
+    _halt_after_inst_reason = info::Stop::NONE;
 #ifdef MAAT_PYTHON_BINDINGS
     self_python_wrapper_object = nullptr;
 #endif
