@@ -113,7 +113,20 @@ ucst_t __number_cst_unsign_trunc(size_t size, cst_t c)
     return (ucst_t)__number_cst_mask(size) & (ucst_t)c;
 }
 
-cst_t __number_cst_sign_extend(size_t size, cst_t val)
+template<typename T>
+struct sign_extend_return_t {typedef T value;};
+
+template<>
+struct sign_extend_return_t<cst_t> {typedef cst_t value;};
+
+template<>
+struct sign_extend_return_t<boost::multiprecision::uint512_t> {typedef boost::multiprecision::int512_t value;};
+
+template<typename T>
+sign_extend_return_t<T>::value __number_sign_extend(size_t size, T val);
+
+template<>
+sign_extend_return_t<cst_t>::value __number_sign_extend<cst_t>(size_t size, cst_t val)
 {
     if( size == sizeof(cst_t)*8)
     {
@@ -129,7 +142,24 @@ cst_t __number_cst_sign_extend(size_t size, cst_t val)
         // Positive, set higher bits to 0
         val = ((((ucst_t)1<<size)-1) & val);
     }
+
     return val;
+}
+
+sign_extend_return_t<boost::multiprecision::uint512_t>::value __number_sign_extend(size_t size, boost::multiprecision::uint512_t val)
+{
+    boost::multiprecision::int512_t value = 0;
+    if ((val >> (size - 1)) & 1)
+    {
+        value = -1;
+        value = ((value << size) | static_cast<boost::multiprecision::int512_t>(val));
+    }
+    else
+    {
+        value = val; 
+    }
+
+    return value;
 }
 
 Number::Number(size_t bits, cst_t value): size(bits)
@@ -137,14 +167,14 @@ Number::Number(size_t bits, cst_t value): size(bits)
     if (bits > 64)
         set_mpz(value);
     else
-        cst_ = __number_cst_sign_extend(size, value);
+        cst_ = __number_sign_extend(size, value);
 }
 
 /// Set the number to simple value 'val'
 void Number::set_cst(cst_t val)
 {
     // Truncate/extend value if needed
-    cst_ = __number_cst_sign_extend(size, val);
+    cst_ = __number_sign_extend(size, val);
 }
 
 void Number::set(cst_t val)
@@ -374,14 +404,11 @@ void Number::set_srem(const Number& n1, const Number& n2)
     size = n1.size;
     if (size <= 64)
     {
-        set_cst(__number_cst_sign_extend(n1.size, n1.cst_) % __number_cst_sign_extend(n2.size, n2.cst_));
+        set_cst(__number_sign_extend(n1.size, n1.cst_) % __number_sign_extend(n2.size, n2.cst_));
     }
     else
     {
-        boost::multiprecision::uint512_t tmp1, tmp2;
-        mpz_init_force_signed(tmp1, n1);
-        mpz_init_force_signed(tmp2, n2);
-        mpz_ = tmp1 % tmp2;
+        mpz_ = static_cast<boost::multiprecision::uint512_t>(__number_sign_extend(n1.size, n1.mpz_) % __number_sign_extend(n2.size, n2.mpz_));
         adjust_mpz();
     }
 }
@@ -520,17 +547,13 @@ void Number::set_sdiv(const Number& n1, const Number& n2)
     if (size <= 64)
     {
         set_cst(
-            __number_cst_sign_extend(n1.size, n1.get_cst()) /
-            __number_cst_sign_extend(n2.size, n2.get_cst())
+            __number_sign_extend(n1.size, n1.get_cst()) /
+            __number_sign_extend(n2.size, n2.get_cst())
         );
     }
     else
     {
-        
-        boost::multiprecision::uint512_t tmp1, tmp2;
-        mpz_init_force_signed(tmp1, n1);
-        mpz_init_force_signed(tmp2, n2);
-        mpz_ = tmp1 / tmp2;
+        mpz_ = static_cast<boost::multiprecision::uint512_t>(__number_sign_extend(n1.size, n1.mpz_) / __number_sign_extend(n2.size, n2.mpz_));
         adjust_mpz();
     }
 }
