@@ -92,6 +92,7 @@ ExprObject::ExprObject(ExprType t, size_t _size, bool _is_simp, Taint _t, ucst_t
     _hash(0),
     _simplified_expr(nullptr),
     _is_simplified(_is_simp),
+    _simplifier_id(0),
     _status(ExprStatus::NOT_COMPUTED),
     _taint(_t),
     _concrete_ctx_id(-1),
