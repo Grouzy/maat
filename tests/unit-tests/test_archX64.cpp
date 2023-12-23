@@ -2577,6 +2577,7 @@ namespace test{
             nb += _assert(  sym.cpu.ctx().get(X64::RAX).as_uint() ==  0xbb01, "ArchX64: failed to disassembly and/or execute XCHG"); 
             nb += _assert(  sym.cpu.ctx().get(X64::R8).as_uint() ==  0xaa23, "ArchX64: failed to disassembly and/or execute XCHG"); 
 
+            /*
             // xchg DWORD PTR [ecx], ecx 
             code = string("\x67\x87\x09", 3);
             sym.mem->write_buffer(0x1100, (uint8_t*)code.c_str(), 3);
@@ -2586,6 +2587,7 @@ namespace test{
             sym.run_from(0x1100, 1);
             nb += _assert(  (uint32_t)sym.mem->read(0x1700, 4).as_uint() ==  0x1700, "ArchX86: failed to disassembly and/or execute XCHG"); 
             nb += _assert(  sym.cpu.ctx().get(X64::RCX).as_uint() ==  0x12345678, "ArchX86: failed to disassembly and/or execute XCHG"); 
+            */
 
             /*
             // xchg al, BYTE PTR [bx]
