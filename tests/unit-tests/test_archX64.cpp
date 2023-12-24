@@ -1,6 +1,7 @@
 #include "maat/arch.hpp"
 #include "maat/engine.hpp"
 #include "maat/exception.hpp"
+#include <bitset>
 #include <cassert>
 #include <iostream>
 #include <string>
@@ -2603,6 +2604,77 @@ namespace test{
             */
             return nb;
         }
+
+        unsigned int disass_ucomisd(MaatEngine& sym)
+        {
+            uint32_t nb = 0;
+
+            // ucomisd xmm5,xmm6 
+            auto code = string("\x66\x0F\x2E\xEE");
+            sym.mem->write_buffer(0x1060, (uint8_t*)code.c_str(), code.size());
+            sym.mem->write_buffer(0x1060+code.size(), (uint8_t*)string("\xeb\x0e", 2).c_str(), 2);
+            //should be equal, only lower double is compared
+            sym.cpu.ctx().set(X64::RFLAGS, exprcst(64, 0));
+            sym.cpu.ctx().set(X64::ZMM5, exprcst(512, "0x00102030405060708090a0b0c0d0e0f0"));
+            sym.cpu.ctx().set(X64::ZMM6, exprcst(512, "0x50102030405060708090a0b0c0d0e0f0"));
+
+            sym.run_from(0x1060, 1);
+
+            nb += _assert(sym.cpu.ctx().get(X64::RFLAGS).as_uint() == 0b1000010, "ArchX86: failed to disassembly and/or execute UCOMISD");
+
+            code = string("\x66\x0F\x2E\xEE");
+            sym.mem->write_buffer(0x1060, (uint8_t*)code.c_str(), code.size());
+            sym.mem->write_buffer(0x1060+code.size(), (uint8_t*)string("\xeb\x0e", 2).c_str(), 2);
+
+            sym.cpu.ctx().set(X64::RFLAGS, exprcst(64, 0));
+            sym.cpu.ctx().set(X64::ZMM5, exprcst(512, "0x00102030405060708090a0b0c0d0e0f0"));
+            sym.cpu.ctx().set(X64::ZMM6, exprcst(512, "0x000102030405060708090a0b0c0d0e0f"));
+
+            sym.run_from(0x1060, 1);
+
+            nb += _assert(sym.cpu.ctx().get(X64::RFLAGS).as_uint() == 0b11, "ArchX86: failed to disassembly and/or execute UCOMISD");
+
+            //NaN check(all exponent bits set, >1 fraction bits are set)
+            //with sign set
+            code = string("\x66\x0F\x2E\xEE");
+            sym.mem->write_buffer(0x1060, (uint8_t*)code.c_str(), code.size());
+            sym.mem->write_buffer(0x1060+code.size(), (uint8_t*)string("\xeb\x0e", 2).c_str(), 2);
+
+            sym.cpu.ctx().set(X64::RFLAGS, exprcst(64, 0));
+            sym.cpu.ctx().set(X64::ZMM5, exprcst(512, "0x00102030405060708090a0b0c0d0e0f0"));
+            sym.cpu.ctx().set(X64::ZMM6, exprcst(512, "0xfff0000000000001"));
+
+            sym.run_from(0x1060, 1);
+
+            nb += _assert(sym.cpu.ctx().get(X64::RFLAGS).as_uint() == 0b1000111, "ArchX86: failed to disassembly and/or execute UCOMISD");
+
+            //with sign not set
+            code = string("\x66\x0F\x2E\xEE");
+            sym.mem->write_buffer(0x1060, (uint8_t*)code.c_str(), code.size());
+            sym.mem->write_buffer(0x1060+code.size(), (uint8_t*)string("\xeb\x0e", 2).c_str(), 2);
+
+            sym.cpu.ctx().set(X64::RFLAGS, exprcst(64, 0));
+            sym.cpu.ctx().set(X64::ZMM5, exprcst(512, "0x00102030405060708090a0b0c0d0e0f0"));
+            sym.cpu.ctx().set(X64::ZMM6, exprcst(512, "0x7ff0000000000001"));
+
+            sym.run_from(0x1060, 1);
+
+            nb += _assert(sym.cpu.ctx().get(X64::RFLAGS).as_uint() == 0b1000111, "ArchX86: failed to disassembly and/or execute UCOMISD");
+
+            //with none of the fraction bits set 
+            code = string("\x66\x0F\x2E\xEE");
+            sym.mem->write_buffer(0x1060, (uint8_t*)code.c_str(), code.size());
+            sym.mem->write_buffer(0x1060+code.size(), (uint8_t*)string("\xeb\x0e", 2).c_str(), 2);
+
+            sym.cpu.ctx().set(X64::RFLAGS, exprcst(64, 0));
+            sym.cpu.ctx().set(X64::ZMM5, exprcst(512, "0x00102030405060708090a0b0c0d0e0f0"));
+            sym.cpu.ctx().set(X64::ZMM6, exprcst(512, "0xfff0000000000000"));
+
+            sym.run_from(0x1060, 1);
+
+            nb += _assert(sym.cpu.ctx().get(X64::RFLAGS).as_uint() == 0b10, "ArchX86: failed to disassembly and/or execute UCOMISD");
+            return nb;
+        }
     }
 }
 
@@ -2793,7 +2865,6 @@ void test_archX64(){
     total += disass_stosw(engine);
     total += disass_sub(engine);
     total += disass_test(engine);
-    total += disass_ucomisd(engine);
     total += disass_vmovd(engine);
     total += disass_vmovdqu(engine);
     total += disass_vpaddd(engine);
@@ -2807,6 +2878,8 @@ void test_archX64(){
     total += disass_xor(engine);
     total += disass_xorpd(engine); */
     
+    total += disass_ucomisd(engine);
+
     /* Prefixes */
     // total += disass_rep(engine);
 

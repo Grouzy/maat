@@ -188,17 +188,21 @@ void Value::set_not(const Value& n)
 
 void Value::set_nan(const Value& n)
 {
+    assert(n.size() == 64);
+
     if (n.is_abstract())
         *this = fnan(n.expr());
     else
     {
-        _number.set(std::isnan((double)n.number().get_cst()));
+        _number.set_nan(n.number());
         type = Value::Type::CONCRETE;
     }
 }
 
 void Value::set_int2float(const Value& n)
 {
+    assert(n.size() == 64);
+
     if (n.is_abstract())
     {
         *this = int2float(n.expr());
@@ -342,6 +346,8 @@ void Value::set_sdiv(const Value& n1, const Value& n2)
 
 void Value::set_fmul(const Value& n1, const Value& n2)
 {
+    assert((n1.size() == n2.size()) && (n1.size() == 64));
+
     if (n1.is_abstract() || n2.is_abstract())
     {
         *this = fmul(n1.as_expr(), n2.as_expr()); 
@@ -355,6 +361,8 @@ void Value::set_fmul(const Value& n1, const Value& n2)
 
 void Value::set_fadd(const Value& n1, const Value& n2)
 {
+    assert((n1.size() == n2.size()) && (n1.size() == 64));
+
     if (n1.is_abstract() || n2.is_abstract())
     {
         *this = fadd(n1.as_expr(), n2.as_expr()); 
@@ -561,9 +569,11 @@ void Value::set_less_than(const Value& n1, const Value& n2, size_t size)
 
 void Value::set_fless_than(const Value& n1, const Value& n2, size_t size)
 {
+    assert((n1.size() == n2.size()) && (n1.size() == 64));
+
     if (n1.is_abstract() || n2.is_abstract())
     {
-        *this = ITE(n1.as_expr(), ITECond::LT, n2.as_expr(),
+        *this = ITE(n1.as_expr(), ITECond::FLT, n2.as_expr(),
                     exprcst(size,1),
                     exprcst(size,0)
                 );
@@ -641,9 +651,11 @@ void Value::set_equal_to(const Value& n1, const Value& n2, size_t size)
 
 void Value::set_fequal_to(const Value& n1, const Value& n2, size_t size)
 {
+    assert((n1.size() == n2.size()) && (n1.size() == 64));
+
     if (n1.is_abstract() || n2.is_abstract())
     {
-        *this = ITE(n1.as_expr(), ITECond::EQ, n2.as_expr(),
+        *this = ITE(n1.as_expr(), ITECond::FEQ, n2.as_expr(),
                     exprcst(size,1),
                     exprcst(size,0)
                 );

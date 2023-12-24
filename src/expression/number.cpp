@@ -285,14 +285,15 @@ void Number::set_neg(const Number& n)
 
 void Number::set_nan(const Number& n)
 {
-    size = n.size;
-    if (n.size <= 64)
-        set_cst(boost::math::isnan((fcst_t)n.cst_));
-    else
+    switch(n.size)
     {
-        // TODO use 128bit float
-        mpz_ = boost::math::isnan(n.mpz_.convert_to<double>());
-        adjust_mpz();
+    case 64:
+        {
+            set_cst(((n.cst_ & 0x7ff0000000000000) >= 0x7ff0000000000000) && (n.cst_ & 0x000fffffffffffff));
+            break;
+        }
+    default:
+        assert(false);
     }
 }
 
