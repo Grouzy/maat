@@ -333,7 +333,7 @@ info::Stop MaatEngine::run(int max_inst)
                 {
                     if (inst.out.is_reg())
                     {
-                        log_str << this->arch->reg_name(inst.out.reg()) << " = ";
+                        log_str << this->arch->reg_name(inst.out.reg()) << ":" << inst.out.size() << " = ";
                     }
                     else
                     {
@@ -354,7 +354,7 @@ info::Stop MaatEngine::run(int max_inst)
 
                     if (inst.in[i].is_reg())
                     {
-                        log_str << this->arch->reg_name(inst.in[i].reg());
+                        log_str << this->arch->reg_name(inst.in[i].reg()) << ":" << inst.in[i].size();
                     }
                     else
                     {

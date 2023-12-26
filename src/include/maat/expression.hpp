@@ -433,6 +433,7 @@ class ExprUnop: public ExprObject
 {
 private:
     Op _op;
+    size_t _operational_size;
     
 protected:
     virtual const Number& concretize(const VarContext* ctx=nullptr);
@@ -440,7 +441,7 @@ protected:
 public:
     ExprUnop();
     /// Constructor
-    ExprUnop(Op op, Expr arg);
+    ExprUnop(Op op, Expr arg, size_t size = 0);
     virtual ~ExprUnop() = default;
     Op op(); ///< Return the operation of the expression
 
@@ -653,7 +654,7 @@ Expr smulh(Expr left, Expr right); ///< Signed multiply two expressions (higher 
 Expr smulh(Expr left, cst_t right); ///< Signed multiply two expressions (higher bits of result) 
 Expr smulh(cst_t left, Expr right); ///< Signed multiply two expressions (higher bits of result)
 
-Expr int2float(Expr arg);
+Expr int2float(Expr arg, size_t size);
 Expr fnan(Expr arg);
 
 Expr operator~(Expr arg); ///< Negate an expression

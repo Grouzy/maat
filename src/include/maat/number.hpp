@@ -68,6 +68,7 @@ public:
 public:
     // TODO: doc
     void set_neg(const Number& n);
+    void set_int2float(const Number& n, size_t size);
     void set_nan(const Number& n);
     void set_not(const Number& n);
     void set_add(const Number& n1, const Number& n2);

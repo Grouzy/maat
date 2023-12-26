@@ -199,17 +199,18 @@ void Value::set_nan(const Value& n)
     }
 }
 
-void Value::set_int2float(const Value& n)
+void Value::set_int2float(const Value& n, size_t size)
 {
-    assert(n.size() == 64);
-
     if (n.is_abstract())
     {
-        *this = int2float(n.expr());
+        auto extended = n;
+        extended.set_zext(size, n);
+        *this = int2float(extended.expr(), n.size());
     }
     else
     {
-        _number.set_cst((double)(n.number().get_cst()));
+        _number.size = size;
+        _number.set_int2float(n.number(), this->size());
         type = Value::Type::CONCRETE;
     }
 }

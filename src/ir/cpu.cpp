@@ -582,7 +582,7 @@ void CPU::_compute_res_value(
             dest.set_subpiece(in0, in1, inst.out.size());
             break;
         case ir::Op::FLOAT_INT2FLOAT:
-            dest.set_int2float(in0);
+            dest.set_int2float(in0, inst.out.size());
             break;
         case ir::Op::FLOAT_MULT:
             dest.set_fmul(in0, in1);

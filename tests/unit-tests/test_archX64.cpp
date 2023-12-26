@@ -2675,6 +2675,37 @@ namespace test{
             nb += _assert(sym.cpu.ctx().get(X64::RFLAGS).as_uint() == 0b10, "ArchX86: failed to disassembly and/or execute UCOMISD");
             return nb;
         }
+
+        unsigned int disass_cvtsi2sd(MaatEngine& sym)
+        {
+            uint32_t nb = 0;
+
+            // cvtsi2sd xmm1,rax
+            auto code = string("\xF2\x48\x0F\x2A\xC8");
+            sym.mem->write_buffer(0x1060, (uint8_t*)code.c_str(), code.size());
+            sym.mem->write_buffer(0x1060+code.size(), (uint8_t*)string("\xeb\x0e", 2).c_str(), 2);
+
+            sym.cpu.ctx().set(X64::ZMM1, exprcst(512, "0x00102030405060708090a0b0c0d0e0f0"));
+            sym.cpu.ctx().set(X64::RAX, exprcst(64, 0x1100000));
+
+            sym.run_from(0x1060, 1);
+
+            nb += _assert_bignum_eq(sym.cpu.ctx().get(X64::ZMM1), "0x102030405060704171000000000000", "ArchX86: failed to disassembly and/or execute CVTSI2SD");
+
+            // cvtsi2sd xmm1,eax
+            code = string("\xF2\x0F\x2A\xC8");
+            sym.mem->write_buffer(0x1060, (uint8_t*)code.c_str(), code.size());
+            sym.mem->write_buffer(0x1060+code.size(), (uint8_t*)string("\xeb\x0e", 2).c_str(), 2);
+
+            sym.cpu.ctx().set(X64::ZMM1, exprcst(512, "0x55555555555555555555555555555555"));
+            sym.cpu.ctx().set(X64::RAX, exprcst(64, 0xffffffff));
+
+            sym.run_from(0x1060, 1);
+
+            nb += _assert_bignum_eq(sym.cpu.ctx().get(X64::ZMM1), "0x5555555555555555bff0000000000000", "ArchX86: failed to disassembly and/or execute CVTSI2SD");
+
+            return nb;
+        }
     }
 }
 
@@ -2879,6 +2910,7 @@ void test_archX64(){
     total += disass_xorpd(engine); */
     
     total += disass_ucomisd(engine);
+    total += disass_cvtsi2sd(engine);
 
     /* Prefixes */
     // total += disass_rep(engine);

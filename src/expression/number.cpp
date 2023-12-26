@@ -283,6 +283,27 @@ void Number::set_neg(const Number& n)
     }
 }
 
+void Number::set_int2float(const Number& n, size_t operational_size)
+{
+    assert(this->size <= 64);
+    switch(operational_size)
+    {
+    case 64:
+        {
+            cst_ = std::bit_cast<cst_t>(static_cast<double>(n.cst_));
+            break;
+        }
+    case 32:
+        {
+            int32_t lower = n.cst_;
+            cst_ = std::bit_cast<cst_t>(static_cast<double>(lower));
+            break;
+        }
+    default:
+        assert(false);
+    }
+}
+
 void Number::set_nan(const Number& n)
 {
     switch(n.size)

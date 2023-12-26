@@ -660,7 +660,7 @@ ValueSet& ExprMem::value_set()
 // ==================================
 ExprUnop::ExprUnop(): ExprObject(ExprType::NONE, 0) {};
 
-ExprUnop::ExprUnop(Op o, Expr arg): ExprObject(ExprType::UNOP, arg->size), _op(o)
+ExprUnop::ExprUnop(Op o, Expr arg, size_t size): ExprObject(ExprType::UNOP, arg->size), _op(o), _operational_size(size)
 {
     args.push_back(arg);
 }
@@ -738,7 +738,7 @@ const Number& ExprUnop::concretize(const VarContext* ctx)
                 _concrete.set_not(n);
                 break;
             case Op::INT2FLOAT:
-                _concrete = n;
+                _concrete.set_int2float(n, _operational_size);
                 break;
             case Op::NaN:
                 _concrete.set_nan(n);
@@ -1819,9 +1819,9 @@ Expr smulh(cst_t left, Expr right)
     return exprbinop(Op::SMULH, exprcst(right->size, left), right);
 }
 
-Expr int2float(Expr arg)
+Expr int2float(Expr arg, size_t size)
 {
-    return std::make_shared<ExprUnop>(Op::INT2FLOAT, arg);
+    return std::make_shared<ExprUnop>(Op::INT2FLOAT, arg, size);
 }
 
 Expr fnan(Expr arg)

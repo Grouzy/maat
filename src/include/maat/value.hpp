@@ -74,7 +74,7 @@ public:
     void set_neg(const Value& n);
     void set_not(const Value& n);
     void set_nan(const Value& n);
-    void set_int2float(const Value& n);
+    void set_int2float(const Value& n, size_t size);
     void set_add(const Value& n1, const Value& n2);
     void set_sub(const Value& n1, const Value& n2);
     void set_mul(const Value& n1, const Value& n2);
