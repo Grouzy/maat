@@ -1871,6 +1871,7 @@ std::string op_to_str(Op op)
         case Op::MOD: return "%";
         case Op::SMOD: return "%S ";
         case Op::INT2FLOAT: return "int2float";
+        case Op::NaN: return "nan";
         default: throw expression_exception("op_to_str(): got unknown operation!");
     }
 }
