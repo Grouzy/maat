@@ -191,6 +191,9 @@ Expr es_neutral_elements(Expr e)
         // 1 * X
         else if( (e->op() == Op::MUL || e->op() == Op::SMULL) && e->args[0]->cst() == 1)
             return e->args[1];
+        // 0 << X || 0 >> X
+        if( (e->op() == Op::SHL || e->op() == Op::SHR || e->op() == Op::SAR) && e->args[0]->cst() == 0 )
+            return e->args[0];
         // TODO(boyan): the one below can probably be removed since the
         // bignum case after should also cover the sizes <= 64
         // 0xfffff.... & X (for native types)

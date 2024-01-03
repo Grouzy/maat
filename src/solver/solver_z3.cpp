@@ -13,6 +13,19 @@ namespace solver
  * Translations from maat to z3 expressions 
  * ========================================= */
 
+z3::sort fpa_sort_from_size(z3::context* c, size_t size)
+{
+    switch(size)
+    {
+        case 16: return c->fpa_sort<16>();
+        case 32: return c->fpa_sort<32>();
+        case 64: return c->fpa_sort<64>();
+        case 128: return c->fpa_sort<128>();
+    }
+
+    assert(false);
+}
+
 z3::expr ITE_cond_to_z3(z3::context* c, Expr left, ITECond cond, Expr right)
 {
     z3::expr l = expr_to_z3(c, left);
@@ -57,14 +70,13 @@ z3::expr expr_to_z3(z3::context* c, Expr e, size_t extend_to_size)
             {
                 case Op::ADD: return expr_to_z3(c, e->args[0]) + expr_to_z3(c, e->args[1]);
                 case Op::FADD: {
-                    assert(e->args[0]->size == 64 && e->args[1]->size == 64);
                     auto first_expr = expr_to_z3(c, e->args[0]); 
                     if(first_expr.is_bv()) {
-                        first_expr = first_expr.mk_from_ieee_bv(c->fpa_sort<64>());
+                        first_expr = first_expr.mk_from_ieee_bv(fpa_sort_from_size(c, e->args[0]->size));
                     }
                     auto second_expr = expr_to_z3(c, e->args[1]); 
                     if(second_expr.is_bv()) {
-                        second_expr= second_expr.mk_from_ieee_bv(c->fpa_sort<64>());
+                        second_expr = second_expr.mk_from_ieee_bv(fpa_sort_from_size(c, e->args[1]->size));
                     }
                     return  first_expr + second_expr;
                 } 
@@ -72,11 +84,11 @@ z3::expr expr_to_z3(z3::context* c, Expr e, size_t extend_to_size)
                     assert(e->args[0]->size == 64 && e->args[1]->size == 64);
                     auto first_expr = expr_to_z3(c, e->args[0]); 
                     if(first_expr.is_bv()) {
-                        first_expr = first_expr.mk_from_ieee_bv(c->fpa_sort<64>());
+                        first_expr = first_expr.mk_from_ieee_bv(fpa_sort_from_size(c, e->args[0]->size));
                     }
                     auto second_expr = expr_to_z3(c, e->args[1]); 
                     if(second_expr.is_bv()) {
-                        second_expr= second_expr.mk_from_ieee_bv(c->fpa_sort<64>());
+                        second_expr = second_expr.mk_from_ieee_bv(fpa_sort_from_size(c, e->args[1]->size));
                     }
                     return  first_expr * second_expr;
                 }
@@ -112,14 +124,8 @@ z3::expr expr_to_z3(z3::context* c, Expr e, size_t extend_to_size)
             switch(e->op()){
                 case Op::NEG: return -expr_to_z3(c, e->args[0]);
                 case Op::NOT: return ~expr_to_z3(c, e->args[0]);
-                case Op::NaN: { 
-                    assert(e->args[0]->size == 64);
-                    return (c->fpa_nan(c->fpa_sort<64>()) == expr_to_z3(c, e->args[0]) ? c->bv_val(1, 8) : c->bv_val(0, 8));
-                }
-                case Op::INT2FLOAT: {
-                    assert(e->args[0]->size == 64);
-                    return z3::sbv_to_fpa(expr_to_z3(c, e->args[0]), c->fpa_sort<64>());
-                }
+                case Op::NaN: return (c->fpa_nan(fpa_sort_from_size(c, e->args[0]->size)) == expr_to_z3(c, e->args[0]) ? c->bv_val(1, 8) : c->bv_val(0, 8));
+                case Op::INT2FLOAT: return z3::sbv_to_fpa(expr_to_z3(c, e->args[0]), fpa_sort_from_size(c, e->args[0]->size));
                 default:
                     throw runtime_exception("expr_to_z3() got unsupported operation");
             }
