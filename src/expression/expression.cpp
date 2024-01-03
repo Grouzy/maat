@@ -713,6 +713,7 @@ bool ExprUnop::is_tainted(ucst_t mask)
       {
             case Op::NEG:
             case Op::NOT: 
+            case Op::NaN: 
                 _taint_mask = args[0]->taint_mask();
                 break;
             default:
