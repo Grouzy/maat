@@ -129,8 +129,17 @@ z3::expr expr_to_z3(z3::context* c, Expr e, size_t extend_to_size)
                 default:
                     throw runtime_exception("expr_to_z3() got unsupported operation");
             }
-        case ExprType::CONCAT:
-            return z3::concat(expr_to_z3(c, e->args[0]), expr_to_z3(c, e->args[1]));
+        case ExprType::CONCAT: {
+            auto first_expr = expr_to_z3(c, e->args[0]); 
+            if(first_expr.is_fpa()) {
+                first_expr = first_expr.mk_to_ieee_bv();
+            }
+            auto second_expr = expr_to_z3(c, e->args[1]); 
+            if(second_expr.is_fpa()) {
+                second_expr = second_expr.mk_to_ieee_bv();
+            }
+            return z3::concat(first_expr, second_expr);
+        }
         case ExprType::EXTRACT:
             return expr_to_z3(c, e->args[0]).extract(e->args[1]->cst(), e->args[2]->cst());
         case ExprType::ITE:

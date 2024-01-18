@@ -75,6 +75,7 @@ public:
     void set_sub(const Number& n1, const Number& n2);
     void set_mul(const Number& n1, const Number& n2);
     void set_fmul(const Number& n1, const Number& n2);
+    void set_fadd(const Number& n1, const Number& n2);
     void set_xor(const Number& n1, const Number& n2);
     void set_shl(const Number& n1, const Number& n2);
     void set_shr(const Number& n1, const Number& n2);

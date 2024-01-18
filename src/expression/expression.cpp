@@ -990,6 +990,7 @@ const maat::Number& ExprBinop::concretize(const VarContext* ctx)
             case Op::SMOD:  _concrete.set_srem(n1, n2); break;
             case Op::AND:   _concrete.set_and(n1, n2); break;
             case Op::FMUL:  _concrete.set_fmul(n1, n2); break;
+            case Op::FADD:  _concrete.set_fadd(n1, n2); break;
             /* TODO, keep or remove that ??
             case Op::MULH:
             {

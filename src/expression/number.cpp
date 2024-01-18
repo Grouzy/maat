@@ -381,14 +381,30 @@ void Number::set_mul(const Number& n1, const Number& n2)
 
 void Number::set_fmul(const Number& n1, const Number& n2)
 {
+    assert(n1.size == 64 && n2.size == 64);
     size = n1.size;
     if (size <= 64)
     {
-        set_cst((fcst_t)n1.cst_ * (fcst_t)n2.cst_);
+        set_cst(std::bit_cast<fcst_t>(n1.cst_) * std::bit_cast<fcst_t>(n2.cst_));
     }
     else
     {
         mpz_ = n1.mpz_ * n2.mpz_;
+        adjust_mpz();
+    }
+}
+
+void Number::set_fadd(const Number& n1, const Number& n2)
+{
+    assert(n1.size == 64 && n2.size == 64);
+    size = n1.size;
+    if (size <= 64)
+    {
+        set_cst(std::bit_cast<fcst_t>(n1.cst_) + std::bit_cast<fcst_t>(n2.cst_));
+    }
+    else
+    {
+        mpz_ = n1.mpz_ + n2.mpz_;
         adjust_mpz();
     }
 }
