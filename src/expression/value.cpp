@@ -210,7 +210,7 @@ void Value::set_int2float(const Value& n, size_t size)
     else
     {
         _number.size = size;
-        _number.set_int2float(n.number(), this->size());
+        _number.set_int2float(n.number(), size);
         type = Value::Type::CONCRETE;
     }
 }
