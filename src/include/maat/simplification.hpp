@@ -54,6 +54,7 @@ Expr es_constant_folding(Expr e); ///< Constant folding simplifier function
 Expr es_neutral_elements(Expr e); ///< Neutral elements simplifier function
 Expr es_absorbing_elements(Expr e); ///< Absorbing elements simplifier function
 Expr es_arithmetic_properties(Expr e); ///< Arithmetic simplification function
+Expr es_arithmetic_patterns(Expr e); ///< Arithmetic simplification function
 Expr es_involution(Expr e); ///< Involution simplifier function
 Expr es_extract_patterns(Expr e); ///< Simplifier function for 'Extract' expressions
 Expr es_basic_transform(Expr e); ///< simplifier function

@@ -113,6 +113,7 @@ std::shared_ptr<ExprSimplifier> NewDefaultExprSimplifier()
     simp->add(es_neutral_elements);
     simp->add(es_absorbing_elements);
     simp->add(es_arithmetic_properties);
+    simp->add(es_arithmetic_patterns);
     simp->add(es_involution);
     simp->add(es_extract_patterns);
 
@@ -291,6 +292,22 @@ Expr es_arithmetic_properties(Expr e)
     {
         return exprcst(e->size, 0);
     }
+    return e;
+}
+
+Expr es_arithmetic_patterns(Expr e)
+{
+    //((0xfffff...*X)+~X)+X -> ~X
+    if(e->is_type(ExprType::BINOP, Op::ADD) && e->args[0]->is_type(ExprType::BINOP, Op::ADD)
+            && (e->args[0]->args[0]->is_type(ExprType::BINOP, Op::MUL) || e->args[0]->args[0]->is_type(ExprType::BINOP, Op::SMULL) )
+            && e->args[0]->args[1]->eq(~e->args[1])
+            && e->args[0]->args[0]->args[0]->is_type(ExprType::CST)
+            && e->args[0]->args[0]->args[0]->eq(exprcst(e->size, (cst_t)-1))
+            && e->args[0]->args[0]->args[1]->eq(e->args[1]))
+    {
+        return ~e->args[1];
+    }
+
     return e;
 }
 
@@ -477,6 +494,22 @@ Expr es_logical_properties(Expr e)
     else if( e->is_type(ExprType::BINOP, Op::XOR) && e->args[0]->eq(e->args[1]))
     {
         return exprcst(e->size, 0);
+    }
+    // Y & (Y | X) --> Y 
+    else if( e->is_type(ExprType::BINOP, Op::AND) && e->args[1]->is_type(ExprType::BINOP, Op::OR) && e->args[0]->eq(e->args[1]->args[0]))
+    {
+        return e->args[0];
+    }
+    //TODO canonize, so that previous simplification applies without this one
+    // (X | Y) & Y  --> Y 
+    else if( e->is_type(ExprType::BINOP, Op::AND) && e->args[0]->is_type(ExprType::BINOP, Op::OR) && e->args[1]->eq(e->args[0]->args[1]))
+    {
+        return e->args[1];
+    }
+    // (Y & X) | X --> X 
+    else if( e->is_type(ExprType::BINOP, Op::OR) && e->args[0]->is_type(ExprType::BINOP, Op::AND) && e->args[1]->eq(e->args[0]->args[1]))
+    {
+        return e->args[1];
     }
 
     return e;
