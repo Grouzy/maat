@@ -55,6 +55,7 @@ set_target_properties(
   OUTPUT_NAME maat
   SUFFIX "${python_soabi}"
   PREFIX ""
+  CXX_STANDARD 20
 )
 
 target_include_directories(
@@ -72,7 +73,6 @@ target_compile_definitions(maat_python PRIVATE MAAT_PYTHON_BINDINGS=1)
 
 target_link_libraries(maat_python PRIVATE
   Python3::Module
-  GMP::GMP
   sleigh::sla
 )
 

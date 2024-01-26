@@ -79,6 +79,7 @@ set_target_properties(
   SOVERSION "${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}"
   EXPORT_NAME maat
   OUTPUT_NAME maat
+  CXX_STANDARD 20
 )
 
 target_include_directories(
@@ -88,8 +89,6 @@ target_include_directories(
   "$<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/src/third-party/keccak>"
   "$<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/src/third-party/murmur3>"
 )
-
-target_compile_features(maat_maat PUBLIC cxx_std_20)
 
 if(maat_PYTHON_PACKAGING)
   set_target_properties(
@@ -115,8 +114,8 @@ else()
   include(FetchContent)
   FetchContent_Declare(
     sleigh
-    GIT_REPOSITORY https://github.com/lifting-bits/sleigh
-    GIT_TAG b2cd7abc2e018a0cb41b68c1d2215a213a5ce21e
+    GIT_REPOSITORY https://github.com/Grouzy/sleigh
+    GIT_TAG 42d3f1a7d5aaae1a4d63008422a9c01d6acba948
     OVERRIDE_FIND_PACKAGE
   )
 
