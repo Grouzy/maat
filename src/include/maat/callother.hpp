@@ -34,6 +34,7 @@ enum class Id
     X86_PMINUB, ///< PMINUB on X86/X64
     X86_INT, ///< INT on X86
     X86_LOCK, ///< LOCK on X86/X64
+    X86_STR,
     // EVM
     EVM_STOP,
     EVM_STACK_POP,

@@ -20,6 +20,7 @@ Id mnemonic_to_id(const std::string& mnemonic, Arch::Type arch)
             if (mnemonic == "PMINUB") return Id::X86_PMINUB;
             if (mnemonic == "INT") return Id::X86_INT;
             if (mnemonic == "LOCK") return Id::X86_LOCK;
+            if (mnemonic == "STR") return Id::X86_STR;
             break;
         case Arch::Type::EVM:
             if (mnemonic == "STACK_PUSH") return Id::EVM_STACK_PUSH;
@@ -277,6 +278,12 @@ void X86_INT_handler(MaatEngine& engine, const ir::Inst& inst, ir::ProcessedInst
     }
 }
 
+void X86_STR_handler(MaatEngine& engine, const ir::Inst& inst, ir::ProcessedInst& pinst)
+{
+    const auto res = exprvar(16, "TSS_init");
+    engine.vars->set("TSS_init", 0x0);
+    pinst.res = res;
+}
 // Helper function that ensures a contract transaction is set
 void _check_transaction_exists(env::EVM::contract_t contract)
 {
@@ -1051,6 +1058,7 @@ HandlerMap default_handler_map()
     h.set_handler(Id::X86_PMINUB, X86_PMINUB_handler);
     h.set_handler(Id::X86_INT, X86_INT_handler);
     h.set_handler(Id::X86_LOCK, X86_LOCK_handler);
+    h.set_handler(Id::X86_STR, X86_STR_handler);
 
     h.set_handler(Id::EVM_STOP, EVM_STOP_handler);
     h.set_handler(Id::EVM_STACK_POP, EVM_STACK_POP_handler);

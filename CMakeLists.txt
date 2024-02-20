@@ -115,7 +115,7 @@ else()
   FetchContent_Declare(
     sleigh
     GIT_REPOSITORY https://github.com/Grouzy/sleigh
-    GIT_TAG 42d3f1a7d5aaae1a4d63008422a9c01d6acba948
+    GIT_TAG b743d258052675c8b77dcd5e764f9c55927736ca
     OVERRIDE_FIND_PACKAGE
   )
 
