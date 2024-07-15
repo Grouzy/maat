@@ -5,7 +5,7 @@
 # Targets necessary to build the project must be provided unconditionally, so
 # consumers can trivially build and package the project
 if(PROJECT_IS_TOP_LEVEL)
-  option(maat_BUILD_PYTHON_BINDINGS "Build Python bindings" ON)
+  option(maat_BUILD_PYTHON_BINDINGS "Build Python bindings" OFF)
   # The following option is used when packaging the Python bindings
   option(maat_PYTHON_PACKAGING "Indicative that this build configuration is used during Python packaging" OFF)
 
@@ -18,7 +18,7 @@ endif()
 # technically require but are almost always desirable to find. We include
 # these options to let an advanced user implement their own backends
 option(maat_USE_Z3 "Build with Z3 solver backend" ON)
-option(maat_USE_LIEF "Build with LIEF loader backend" ON)
+option(maat_USE_LIEF "Build with LIEF loader backend" OFF)
 
 # Optionally use vendored dependencies
 option(maat_USE_EXTERNAL_SLEIGH "Find an external installation of sleigh" OFF)

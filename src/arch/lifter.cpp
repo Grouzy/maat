@@ -4,8 +4,8 @@
 #include <string>
 #include <filesystem>
 
-#include "sleigh/SpecFilePaths.h"
-#include "sleigh/Support.h"
+#include <sleigh/libsleigh.hh>
+#include <sleigh/SpecFilePaths.h>
 
 namespace maat
 {

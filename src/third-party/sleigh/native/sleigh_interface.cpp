@@ -4,9 +4,7 @@
 #include <assert.h>
 #include <stdbool.h>
 
-#include <sleigh/loadimage.hh>
-#include <sleigh/sleigh.hh>
-#include <sleigh/types.h>
+#include <sleigh/libsleigh.hh>
 
 #include "maat/ir.hpp"
 #include "maat/exception.hpp"
