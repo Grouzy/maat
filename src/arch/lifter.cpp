@@ -25,20 +25,20 @@ Lifter::Lifter(CPUMode m): mode(m)
     {
         if (mode == CPUMode::X86)
         {
-            slafile = sleigh::FindSpecFile("x86.sla", {sleigh::kSleighSpecBuildDir, sleigh::kSleighFullSpecInstallDir});
-            pspecfile = sleigh::FindSpecFile("x86.pspec", {sleigh::kSleighSpecBuildDir, sleigh::kSleighFullSpecInstallDir});
+            slafile = sleigh::FindSpecFile("x86.sla");
+            pspecfile = sleigh::FindSpecFile("x86.pspec");
             arch = Arch::Type::X86;
         }
         else if (mode == CPUMode::X64)
         {
-            slafile = sleigh::FindSpecFile("x86-64.sla", {sleigh::kSleighSpecBuildDir, sleigh::kSleighFullSpecInstallDir});
-            pspecfile = sleigh::FindSpecFile("x86-64.pspec", {sleigh::kSleighSpecBuildDir, sleigh::kSleighFullSpecInstallDir});
+            slafile = sleigh::FindSpecFile("x86-64.sla");
+            pspecfile = sleigh::FindSpecFile("x86-64.pspec");
             arch = Arch::Type::X64;
         }
         else if (mode == CPUMode::EVM)
         {
-            slafile = sleigh::FindSpecFile("EVM.sla", {sleigh::kSleighSpecBuildDir, sleigh::kSleighFullSpecInstallDir});
-            pspecfile = sleigh::FindSpecFile("EVM.pspec", {sleigh::kSleighSpecBuildDir, sleigh::kSleighFullSpecInstallDir});
+            slafile = sleigh::FindSpecFile("EVM.sla");
+            pspecfile = sleigh::FindSpecFile("EVM.pspec");
             arch = Arch::Type::EVM;
         }
         else

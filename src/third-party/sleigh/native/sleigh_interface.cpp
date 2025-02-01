@@ -14,7 +14,7 @@
 
 #include <optional>
 
-// #define DEBUG
+#define DEBUG
 #ifdef DEBUG
 #define LOG(fmt, ...) fprintf(stderr, "sleigh: " fmt "\n", ## __VA_ARGS__);
 #else
@@ -316,9 +316,17 @@ public:
 
     bool loadSlaFile(const char *path)
     {
-        LOG("%p Loading slafile...", this);
+        LOG("%p Loading slafile... %s", this, path);
         // TODO try/catch XmlError
-        m_document = m_document_storage.openDocument(path);
+        try {
+            std::istringstream sla("<sleigh>" + std::string(path) + "</sleigh>");
+            m_document = m_document_storage.parseDocument(sla);
+        }
+        catch(ghidra::DecoderError& err) {
+            LOG("FAILED TO LOAD %s", err.explain.c_str());
+            return false;
+        }
+
         m_tags = m_document->getRoot();
         m_document_storage.registerTag(m_tags);
 
